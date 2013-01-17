@@ -1,0 +1,96 @@
+<?php
+ini_set('display_errors','1');
+require ('gChart.php');
+?>
+<!-- indexer::stop -->
+<section class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<?php if ($this->headline): ?>
+
+<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+<?php endif; ?>
+
+<!-- <?php $this->ShowTemplateVars(); ?> -->
+
+<table cellpadding="4" cellspacing="0" summary="Statistics Information">
+	<tbody>
+	<thead>
+		<tr>
+		<th>id</th>
+		<th>Sensor</th>
+		<th>Location</th>
+		<th>Graphs</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>
+			<?php echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'.html">'.$this->sensor['id'].'</a>'; ?>
+		</td>	
+		<td>
+			<?php echo $this->sensor['idsensor']; ?>
+		</td>	
+		<td>
+			<?php echo $this->sensor['location']; ?>
+		</td>	
+		<td>
+			<?php echo $this->sensor['SensorType']; ?>
+		</td>	
+		<td>
+			<?php
+                if ($this->year == 0) {
+                  echo '<a href="index.php/Sensors/item/'.$this->sensor['idsensor'].'/graph/values.html">Graph</a>&nbsp;';
+                } else {
+                    echo '<a href="index.php/Sensors/item/'.$this->sensor['idsensor'].'/year/'.$this->year.'/graph/values.html">Graph</a>&nbsp;';
+                }
+            ?>
+		</td>	
+	</tr>
+	</tbody>
+</table>
+
+<p><p>
+<?php
+$lineChart = new gLineChart(800,350);
+$lineChart->setTitle ($this->title);
+$lineChart->addDataSet($this->ds1);
+$lineChart->addDataSet($this->ds2);
+if (is_array($this->ds3)) {
+    $lineChart->addDataSet($this->ds3);
+}
+// all data is scaled 0-100 already
+$lineChart->setDataRange(0, 100);
+
+$lineChart->setLegend($this->legend);
+// first colour 009fe3 is blue from colour set
+// e34300 is complimentary orange
+// 9fe300 is triadic green
+$lineChart->setColors(array("009fe3", "e34300", "9fe300"));
+// define duplicate axes for the labels
+if (is_array($this->r_unit)) {
+    $lineChart->setVisibleAxes(array('x','x','y','y','r','r'));
+    $lineChart->addAxisRange(2, 0, $this->y_max);      // y axis represents flow
+    $lineChart->addAxisRange(4, 0, $this->r_max);  // r axis represents peak flow
+} else {
+    $lineChart->setVisibleAxes(array('x','x','y','y'));
+    $lineChart->addAxisRange(2, 0, $this->y_max);      // y axis represents flow
+}
+$lineChart->setGridLines(0, 10, 4, 1, 0, 0);
+// add labels to the side, 
+$lineChart->addAxisLabel(0, $this->x_axis);
+$lineChart->addAxisLabel(1, $this->x_unit);
+$lineChart->addAxisLabel(3, $this->y_unit);
+if (is_array($this->r_unit)) {
+    $lineChart->addAxisLabel(5, $this->r_unit);
+}
+// and position them in the middle
+$lineChart->addAxisLabelPositions(1, array(50));
+$lineChart->addAxisLabelPositions(3, array(50));
+$lineChart->addAxisLabelPositions(5, array(50));
+$lineChart->addBackgroundFill('bg', 'FFFFFF');
+$lineChart->addBackgroundFill('c', 'FFFFFF');
+?>
+
+<img src="<?php print $lineChart->getUrl();  ?>" /> <br>
+<p>
+
+</section>
+<!-- indexer::continue -->

@@ -1,0 +1,109 @@
+<!-- indexer::stop -->
+<section class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<?php if ($this->headline): ?>
+
+<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+<?php endif; ?>
+
+<table cellpadding="4" cellspacing="0" summary="locations">
+	<tbody>
+	<tr>
+		<td>id:</td>
+		<td>
+			<?php echo $this->location['id']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Name:</td>
+		<td>
+			<?php echo $this->location['name']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Street:</td>
+		<td>
+			<?php echo $this->location['street']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Housenumber:</td>
+		<td>
+			<?php echo $this->location['housenumber']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Postal Code:</td>
+		<td>
+			<?php echo $this->location['postalcode']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>City:</td>
+		<td>
+			<?php echo $this->location['city']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Country:</td>
+		<td>
+			<?php echo $this->location['country']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Contact Person:</td>
+		<td>
+			<?php echo $this->location['contactperson']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Email:</td>
+		<td>
+			<?php echo $this->location['email']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Telephone:</td>
+		<td>
+			<?php echo $this->location['telephone']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Latitude:</td>
+		<td>
+			<?php echo $this->location['latitude']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Longitude:</td>
+		<td>
+			<?php echo $this->location['longitude']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Sunrise:</td>
+		<td>
+			<?php echo $this->location['sunrise']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Sunset:</td>
+		<td>
+			<?php echo $this->location['sunset']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Comments:</td>
+		<td>
+			<?php echo $this->location['comments']; ?>
+		</td>	
+	</tr>
+	<tr>
+		<td>Sensors:</td>
+		<td>
+			<?php echo '<a href="index.php/Sensors/location/'.$this->location['id'].'.html">Sensors</a>'; ?>
+		</td>	
+	</tr>
+	</tbody>
+</table>
+</section>
+<!-- indexer::continue -->

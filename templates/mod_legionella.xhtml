@@ -1,0 +1,35 @@
+<?php
+ini_set('display_errors','1');
+?>
+<!-- indexer::stop -->
+<section class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<?php if ($this->headline): ?>
+
+<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+<?php endif; ?>
+
+<!-- <?php $this->ShowTemplateVars(); ?> -->
+
+<table cellpadding="4" cellspacing="0" summary="Statistics Overview">
+	<thead>
+		<tr>
+		<th>location</th>
+		<th>Graphs</th>
+		</tr>
+	</thead>
+	<tbody>
+	<?php foreach ($this->stats as $stat): ?>
+	<tr>
+		<td>
+			<?php echo '<a href="index.php/locations/item/'.$stat['id'].'.html">'.$stat['id'].'</a>'; ?>
+		</td>	
+		<td>
+			<?php echo $stat['selector']; ?>
+		</td>	
+	</tr>
+	<?php endforeach; ?>
+	</tbody>
+</table>
+
+</section>
+<!-- indexer::continue -->

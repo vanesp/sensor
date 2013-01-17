@@ -1,0 +1,85 @@
+<?php
+ini_set('display_errors','1');
+require ('gChart.php');
+?>
+<!-- indexer::stop -->
+<section class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<?php if ($this->headline): ?>
+
+<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+<?php endif; ?>
+
+<!-- <?php $this->ShowTemplateVars(); ?> -->
+
+<table cellpadding="4" cellspacing="0" summary="location Information">
+	<tbody>
+	<thead>
+		<tr>
+		<th>id</th>
+		<th>name</th>
+		<th>city</th>
+        <th>Graphs</th>
+		</tr>
+	</thead>
+	<tr>
+		<td>
+			<?php echo '<a href="index.php/locations/item/'.$this->location['id'].'.html">'.$this->location['id'].'</a>'; ?>
+		</td>	
+		<td>
+			<?php echo $this->location['name']; ?>
+		</td>	
+		<td>
+			<?php echo $this->location['city']; ?>
+		</td>	
+		<td>
+			<?php echo $this->links; ?>
+		</td>	
+	</tr>
+	</tbody>
+</table>
+
+<p><p>
+<?php
+if (isset($this->scatter)) {
+    $lineChart = new gScatterChart(800,350);
+} else {
+    $lineChart = new gLineChart(800,350);
+}
+$lineChart->setTitle ($this->title);
+$lineChart->addDataSet($this->ds1);
+$lineChart->addDataSet($this->ds2);
+if (is_array($this->ds3)) {
+    $lineChart->addDataSet($this->ds3);
+}
+$lineChart->setLegend($this->legend);
+// first colour 009fe3 is blue from colour set
+// e34300 is complimentary orange
+// 9fe300 is triadic green
+$lineChart->setColors(array("009fe3", "e34300", "9fe300"));
+// define duplicate axes for the labels
+$lineChart->setVisibleAxes(array('x','x','y','y','r','r'));
+$lineChart->addAxisRange(2, $this->y_min, $this->y_max);      // y axis
+$lineChart->addAxisRange(4, $this->r_min, $this->r_max);      // r axis
+$lineChart->setGridLines(0, 10, 4, 1, 0, 0);
+// add labels to the side, 
+$lineChart->addAxisLabel(0, $this->week);
+$lineChart->addAxisLabel(1, $this->x_unit);
+$lineChart->addAxisLabel(3, $this->y_unit);
+$lineChart->addAxisLabel(5, $this->r_unit);
+// and position them in the middle
+$lineChart->addAxisLabelPositions(1, array(50));
+$lineChart->addAxisLabelPositions(3, array(50));
+$lineChart->addAxisLabelPositions(5, array(50));
+$lineChart->addBackgroundFill('bg', 'FFFFFF');
+if (is_array($this->colors)) {
+    $lineChart->setGradientFill('c',90, $this->colors);
+}
+
+// $lineChart->addBackgroundFill('c', 'FFFFFF');
+?>
+
+<img src="<?php print $lineChart->getUrl();  ?>" /> <br>
+<p>
+
+</section>
+<!-- indexer::continue -->

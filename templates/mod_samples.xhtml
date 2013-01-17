@@ -1,0 +1,40 @@
+<!-- indexer::stop -->
+<section class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<?php if ($this->headline): ?>
+
+<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+<?php endif; ?>
+
+<!-- <?php $this->ShowTemplateVars(); ?> -->
+
+<table cellpadding="4" cellspacing="0" summary="Samples">
+	<thead>
+		<tr>
+		<th>id</th>
+		<th>name</th>
+		<th>city</th>
+		<th>Samples</th>
+		</tr>
+	</thead>
+	<tbody>
+	<?php foreach ($this->samples as $sample): ?>
+	<tr>
+		<td>
+			<?php echo $sample['id']; ?>
+		</td>	
+		<td>
+			<?php echo $sample['name']; ?>
+		</td>	
+		<td>
+			<?php echo $sample['city']; ?>
+		</td>	
+		<td>
+			<?php echo $sample['samples']; ?>
+		</td>	
+	</tr>
+	<?php endforeach; ?>
+	</tbody>
+</table>
+
+</section>
+<!-- indexer::continue -->
