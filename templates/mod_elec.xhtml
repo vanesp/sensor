@@ -10,44 +10,17 @@ ini_set('display_errors','1');
 
 <!-- <?php $this->ShowTemplateVars(); ?> -->
 
-<table cellpadding="4" cellspacing="0" summary="Statistics Information">
-	<tbody>
-	<thead>
-		<tr>
-		<th>id</th>
-		<th>Sensor</th>
-		<th>Location</th>
-		<th>Type</th>
-		<th>Graphs</th>
-		</tr>
-	</thead>
-	<tr>
-		<td>
-			<?php echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'.html">'.$this->sensor['id'].'</a>'; ?>
-		</td>	
-		<td>
-			<?php echo $this->sensor['idsensor']; ?>
-		</td>	
-		<td>
-			<?php echo $this->sensor['location']; ?>
-		</td>	
-		<td>
-			<?php echo $this->sensor['sensortype']; ?>
-		</td>	
-		<td>
+<p>
 			<?php
                 if ($this->date == 0) {
-                  echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/values.html">Graph</a>&nbsp;';
+                  echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/graph/daily.html">Daily</a>&nbsp;';
+                  echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/graph/monthly.html">Month</a>&nbsp;';
                 } else {
-                    echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/values.html">Graph</a>&nbsp;';
+                    echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/date/'.$this->date.'/graph/daily.html">Daily</a>&nbsp;';
+                    echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/date/'.$this->date.'/graph/monthly.html">Month</a>&nbsp;';
                 }
             ?>
-		</td>	
-	</tr>
-	</tbody>
-</table>
-
-<p><p>
+<p>
 <h2>
 	<?php echo $this->title; ?>
 </h2>
@@ -62,10 +35,10 @@ $(function () {
         { label: "<?php echo $this->l1; ?>",  data: d1}
     ], {
     	xaxes: [ { mode: "time" } ],
-    	yaxes: [ { min: 0 }
-    		   ],
+//    	yaxes: [ { min: 0 }
+//    		   ],
         series: {
-            lines: { show: true }
+            bars: { show: true, align: "center", barWidth: 3200000 }
            //  points: { show: true }
         },
          grid: {

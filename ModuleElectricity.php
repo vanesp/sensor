@@ -81,9 +81,14 @@ class ModuleElectricity extends Module
 		if ((strcmp($objUser->email, $objMember->email)==0) || BE_USER_LOGGED_IN) {
 			// we accept all sensors and we have a HWTuser
             $this->bContaoUser = true;
-			$objSensors = $this->Database->prepare("SELECT id FROM Sensor ORDER BY id")->execute();
+			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE Sensortype='Electricity' ORDER BY id")->execute();
 		} else {
-			$objSensors = $this->Database->prepare("SELECT DISTINCT Sensor.id AS id FROM Sensor, Location, Customer WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?) AND (Sensor.pid=Customer.id OR Sensor.pid=Location.id) AND Location.pid=Customer.id ORDER BY Sensor.id")->execute($objMember->email, $objMember->email);
+			$objSensors = $this->Database->prepare("SELECT DISTINCT Sensor.id AS id
+			                                        FROM Sensor, Location, Customer
+			                                        WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?)
+			                                        AND (Sensor.pid=Customer.id OR Sensor.pid=Location.id)
+			                                        AND Location.pid=Customer.id AND Sensortype='Electricity'
+			                                        ORDER BY Sensor.id")->execute($objMember->email, $objMember->email);
 		}
 
 		while ($objSensors->next())
@@ -118,13 +123,14 @@ class ModuleElectricity extends Module
 		if ((strcmp($objUser->email, $objMember->email)==0) || BE_USER_LOGGED_IN) {
 			// we accept all sensors and we have a HWTuser
             $this->bContaoUser = true;
-			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE pid=? ORDER BY id")->execute($loc);
+			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE pid=? AND Sensortype='Electricity' ORDER BY id")->execute($loc);
 		} else {
 			$objSensors = $this->Database->prepare("SELECT DISTINCT Sensor.id AS id FROM Sensor, Location, Customer
             WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?)
             AND (Sensor.pid=Customer.id OR Sensor.pid=Location.id)
             AND Location.pid=Customer.id 
             AND Sensor.pid=?
+            AND Sensortype='Electricity'
             ORDER BY Sensor.id")->execute($objMember->email, $objMember->email, $loc);
 		}
 
@@ -134,6 +140,81 @@ class ModuleElectricity extends Module
 		}
 		return $arrSensors;
 	}
+
+	/**
+	 * convert obj to array
+	 * @param obj
+	 * @return array
+	 */
+	protected function sensor2arr($objSensors)
+	{
+
+		$this->import('String');
+        
+		// go and interpret values to add trafficlight system
+		$last = $objSensors->tstamp;
+		$now = time();					// return unix time
+		$monitoredurl = '<img src="/system/modules/sensor/html/Red.png" alt="Not recently Monitored" />';
+		if ($last+6*60 >= $now) {
+			// monitored within last 6 mins
+			$monitoredurl = '<img src="/system/modules/sensor/html/Green.png" alt="Monitored within 6 mins" />';
+		} else {
+			if ($last+12*60 >= $now) {
+				$monitoredurl = '<img src="/system/modules/sensor/html/Orange.png" alt="Monitored within 12 mins" />';
+			}
+		}
+		
+		// verify machine status
+		if ($objSensors->lobatt == 1)  {
+            // PvE:its a low battery
+            $machineurl = '<img src="/system/modules/sensor/html/Red.png" alt="Battery dead" />';
+		} else {
+            $machineurl = '<img src="/system/modules/sensor/html/Green.png" alt="Battery ok" />';
+		}
+        
+        // now retrieve the last measured value = current value for each sensor
+        if ($objSensors->sensortype == 'RNR') {
+        	// roomnode
+			$objs = $this->Database->prepare ("SELECT * FROM Roomlog WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
+			$objs->next();
+			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' L: '.$objs->light. ' % RH: '.$objs->humidity. ' % T: '.$objs->temp. ' &deg;C';
+        } else {
+        	// regular sensor
+			$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
+			$objs->next();
+			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' '.$objs->value.' '.$objSensors->sensorquantity;
+        }
+        
+		$newArray = array
+		(
+			'id' => $objSensors->id,
+			'pid' => $objSensors->pid,
+			'tstamp' => $this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $obj->tstamp),
+			'name' => $objSensor->name,
+			'uid' => $objSensors->uid,
+			'idsensor' => $objSensors->idsensor,
+			'idroom' => $objSensors->idroom,
+			'lobatt' => $objSensors->lobatt,
+			'location' => $objSensors->location,
+			'comments' => $objSensors->comments,
+			'sensortype' => $objSensors->sensortype,
+			'sensorquantity' => $objSensors->sensorquantity,
+			'datastream' => $objSensors->datastream,
+			'sensorscale' => $objSensors->sensorscale,
+			'cum_gas_pulse' => $objSensors->cum_gas_pulse,
+			'cum_water_pulse' => $objSensors->cum_water_pulse,
+			'cum_elec_pulse' => $objSensors->cum_elec_pulse,
+			'highalarm' => $objSensors->highalarm,
+			'lowalarm' => $objSensors->lowalarm,
+			'detailurl' => '<a href="'.$this->addToUrl('&item='.$objSensors->id).'">'. $objSensors->idsensor . '</a>',
+			'monitorimg' => $monitoredurl,
+			'machineimg' => $machineurl,
+			'currentvalue' => $value,
+		);
+        
+		return $newArray;
+	}
+
 
 	/**
 	 * convert Elec log obj to array
@@ -179,16 +260,43 @@ class ModuleElectricity extends Module
 	protected function listElec ($id, $timestamp, $graph)
 	{
         $arrData = array();
+        $isdaily = true;
        
-        if (!isset($timestamp)) {
-            $endtime = time();
-        	$starttime = $endtime - (24 * 3600);
+        if (!isset($graph)) {               // else monthly
+            $graph='daily';
+        }
+        
+        if (strcmp($graph, 'daily') == 0) {
+            $isdaily = true;
         } else {
-        	$starttime = $timestamp;
-        	$endtime = $starttime + (24 * 3600);
+            $isdaily = false;
         }
 
-		$objs = $this->Database->prepare ("SELECT tstamp, value FROM HourlyEleclog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
+        if (!isset($timestamp)) {
+            if ($isdaily) {
+                $nrdays = 1;
+            } else {
+                $nrdays = date("t");            // php trick to return number of days in current month
+            }
+            $endtime = time();
+        	$starttime = $endtime - ($nrdays * 24 * 3600);
+        	$timestamp = $starttime;
+        } else {
+            if ($isdaily) {
+                $nrdays = 1;
+            } else {
+                $a = getdate ($timestamp);
+                $nrdays = cal_days_in_month (CAL_GREGORIAN, $a["mon"], $a["year"]);
+            }
+        	$starttime = $timestamp;
+        	$endtime = $starttime + ($nrdays * 24 * 3600);
+        }
+
+        if ($isdaily) {
+		    $objs = $this->Database->prepare ("SELECT tstamp, value FROM HourlyEleclog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
+	    } else {
+		    $objs = $this->Database->prepare ("SELECT tstamp, value FROM DailyEleclog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
+	    } 
 		if ($objs->last()) {
 			$arrData[] = $this->elec2arr($objs,'');
 			while ($objs->prev()) {
@@ -212,18 +320,30 @@ class ModuleElectricity extends Module
         $this->Template = new FrontendTemplate ($this->strTemplate);
         // Assign data to the template
         $this->Template->date = $timestamp;
+        $this->Template->sensorid = $id;
+        // For debugging
+        $this->Template->nrdays = $nrdays;
+        $this->Template->start = $starttime;
+        $this->Template->end = $endtime;
+        
+        
+        if ($isdaily) {
+            $previous = strtotime ("yesterday", $timestamp);
+            $next = strtotime ("tomorrow", $timestamp);
+        } else {
+            $previous = strtotime ("first day of previous month", $timestamp);
+            $next = strtotime ("first day of next month", $timestamp);
+        }            
+
         // Start building the title, first get timestamps of yesterday and tomorrow
         
         if ($timestamp == 0 or !isset($timestamp)) {
-        	$yesterday = strtotime ("yesterday");
-        	$title = '<a href="index.php/Electricity/date/'.$yesterday.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Last 24 hours &nbsp;';
         } else {
-        	$yesterday = strtotime ("yesterday", $timestamp);
-        	$tomorrow = strtotime ("tomorrow", $timestamp);
-        	$title = '<a href="index.php/Electricity/date/'.$yesterday.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Date '.date("l, d-m-Y",$timestamp);
-        	$title .= '&nbsp;<a href="index.php/Electricity/date/'.$tomorrow.'/graph/'.$graph.'.html">></a>&nbsp;';
+        	$title .= '&nbsp;<a href="index.php/Electricity/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
         }
         
 
@@ -244,7 +364,7 @@ class ModuleElectricity extends Module
 
 		// Select appropriate Sensors
 		$this->sensorids = $this->accessSensors();
-		$this->strTemplate = 'mod_sensors';
+		$this->strTemplate = 'mod_elec_sensors';
 		$this->Template = new FrontendTemplate ($this->strTemplate);
 
 		// item is an idsensor...
@@ -252,6 +372,7 @@ class ModuleElectricity extends Module
         $item = $this->Input->get('item');
         $date = $this->Input->get('date');
         $graph = $this->Input->get('graph');
+
 
         // we may have a location... if so, collect Sensor's at that location only
         $location = $this->Input->get('location');
@@ -273,12 +394,7 @@ class ModuleElectricity extends Module
 			// check if item in the array of $this->custids, so that we have access
 			if (is_array($this->sensorids) && (in_array($item, $this->sensorids, $strict = null))) {
 				// ok, we are allowed to see that item... check if it is a graph or just a listing 
-		        if (strlen($graph) == 0) {
-					$this->listSensor($item);
-				} else {
-					$this->listGraph($item, $date, $graph);
-				}
-				
+				$this->listElec($item, $date, $graph);
 			} else {
 				// can not see this sensor,
 				$this->strTemplate = 'mod_sensor_error';

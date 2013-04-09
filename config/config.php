@@ -47,6 +47,7 @@ array_insert($GLOBALS['BE_MOD']['Sensor'], 0,
 array_insert($GLOBALS['FE_MOD']['Sensor'], 0, array
 (
 	'Sensors'  => 'ModuleSensors',
+	'Electricity' => 'ModuleElectricity',
 	'Customers' => 'ModuleCustomers',
 	'Locations' => 'ModuleLocations',
     'Statistics'   => 'ModuleStatistics',
