@@ -38,8 +38,12 @@ ini_set('display_errors','1');
 			<?php
                 if ($this->date == 0) {
                   echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/values.html">Graph</a>&nbsp;';
+                  echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/weekly.html">Week</a>&nbsp;';
+                  echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/monthly.html">Month</a>&nbsp;';
                 } else {
                     echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/values.html">Graph</a>&nbsp;';
+                    echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/weekly.html">Week</a>&nbsp;';
+                    echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/monthly.html">Month</a>&nbsp;';
                 }
             ?>
 		</td>	

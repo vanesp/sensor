@@ -11,11 +11,15 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.0</version>
+// <version>1.1</version>
 // <email>vanesp@escurio.com</email>
-// <date>2012-07-27</date>
+// <date>2013-07-31</date>
 // <summary>Accumulate updates database statistics</summary>
 
+// Version 1.1 -- remove year, month, day, hour fields from summary tables
+//                change drop table commands to temporary tables
+//                use replace table to insert values
+//                create daily table for min, max temperatures
 
 
 /*
@@ -47,33 +51,77 @@ class Accumulate extends Frontend
 	public function Statistics()
 	{
 		// Roomlog records
-		$obj = $this->Database->prepare("DROP TABLE IF EXISTS HourlyRoomlog")->execute();
-		$obj = $this->Database->prepare("CREATE TABLE HourlyRoomlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THRoomlog")->execute();
+		$obj = $this->Database->prepare("CREATE TABLE THRoomlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
 											Max(tstamp) as tstamp,
 											round(avg(light),0) as light,
 											round(avg(humidity),0) as humidity,
 											round(avg(temp),1) as temp
 											from Roomlog GROUP BY pid, year, month, day, hour;")->execute();
-/*	$obj = $this->Database->prepare("DROP TABLE IF EXISTS DailyRoomlog")->execute();
-		$obj = $this->Database->prepare("CREATE TABLE DailyRoomlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day,
+
+        // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
+		$obj = $this->Database->prepare("REPLACE INTO HourlyRoomlog
+		                                    SELECT pid, year, month, day, hour, tstamp, light, humidity, temp
+											FROM THRoomlog WHERE tstamp > UNIX_TIMESTAMP()-604800;")->execute();
+
+        // Same for daily room log
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDRoomlog")->execute();
+		$obj = $this->Database->prepare("CREATE TABLE TDRoomlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day,
 											Max(tstamp) as tstamp,
 											round(avg(light),0) as light,
 											round(avg(humidity),0) as humidity,
-											round(avg(temp),1) as temp
+											round(avg(temp),1) as temp,
+											Max(temp) as hitemp,
+											Min(temp) as lowtemp
 											from Roomlog GROUP BY pid, year, month, day;")->execute();
-*/
+
+        // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
+		$obj = $this->Database->prepare("REPLACE INTO DailyRoomlog
+		                                    SELECT pid, year, month, day, hour, tstamp, light, humidity, temp, hitemp, lowtemp
+											FROM TDRoomlog WHERE tstamp > UNIX_TIMESTAMP()-604800;")->execute();
+
+
+        // Delete older Roomlog records (over 31 days old)
+		$obj = $this->Database->prepare("DELETE FROM Roomlog WHERE tstamp < UNIX_TIMESTAMP()-2678400;")->execute();		
+		// And drop the table to preserve space
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THRoomlog")->execute();
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDRoomlog")->execute();
+
+
+
+
 		// Sensor records
-		$obj = $this->Database->prepare("DROP TABLE IF EXISTS HourlySensorlog")->execute();
-		$obj = $this->Database->prepare("CREATE TABLE HourlySensorlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THSensorlog")->execute();
+		$obj = $this->Database->prepare("CREATE TABLE THSensorlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
 											Max(tstamp) as tstamp,
 											round(avg(value),2) as value
 											from Sensorlog GROUP BY pid, year, month, day, hour;")->execute();
-/*		$obj = $this->Database->prepare("DROP TABLE IF EXISTS DailySensorlog")->execute();
-		$obj = $this->Database->prepare("CREATE TABLE DailySensorlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day,
+
+        // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
+		$obj = $this->Database->prepare("REPLACE INTO HourlySensorlog
+		                                    SELECT pid, year, month, day, hour, tstamp, value
+											FROM THSensorlog WHERE tstamp > UNIX_TIMESTAMP()-604800;")->execute();
+
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDSensorlog")->execute();
+		$obj = $this->Database->prepare("CREATE TABLE TDSensorlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day,
 											Max(tstamp) as tstamp,
-											round(avg(value),2) as value
+											round(avg(value),2) as value,
+											Max(value) as hivalue,
+											Min(value) as lowvalue
 											from Sensorlog GROUP BY pid, year, month, day;")->execute();
-*/
+											
+        // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
+		$obj = $this->Database->prepare("REPLACE INTO DailySensorlog
+		                                    SELECT pid, year, month, day, hour, tstamp, value, hivalue, lowvalue
+											FROM TDSensorlog WHERE tstamp > UNIX_TIMESTAMP()-604800;")->execute();
+
+        // Delete older Roomlog records (over 31 days old)
+		$obj = $this->Database->prepare("DELETE FROM Sensorlog WHERE tstamp < UNIX_TIMESTAMP()-2678400;")->execute();		
+		// And drop the table to preserve space										
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THSensorlog")->execute();
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDSensorlog")->execute();
+
+
 		// Electricity records
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS HourlyEleclog")->execute();
 		$obj = $this->Database->prepare("CREATE TABLE HourlyEleclog SELECT YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
@@ -81,6 +129,7 @@ class Accumulate extends Frontend
 											Sum(count) as value
 											from Sensorlog 
 											WHERE pid=4 GROUP BY year, month, day, hour;")->execute();
+
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS DailyEleclog")->execute();
 		$obj = $this->Database->prepare("CREATE TABLE DailyEleclog SELECT YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day,
 											Max(tstamp) as tstamp,

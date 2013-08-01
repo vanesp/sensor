@@ -13,11 +13,12 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.2</version>
+// <version>1.3</version>
 // <email>vanesp@escurio.com</email>
 // <date>2013-01-01</date>
 
 // Version changes: 1.2, 2013-01-01 - remove id from log records
+// Version 1.3, 2013-07-31 - add weekly / monthly graphs
 
  /**
  * Class ModuleSensors
@@ -265,18 +266,18 @@ class ModuleSensors extends Module
 		}
 		$newArray = array
 		(
-			'pid' => $obj->pid,
-			'ts' => $this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $obj->tstamp),
+//			'pid' => $obj->pid,
+//			'ts' => $this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $obj->tstamp),
 			'tstamp' =>  $obj->tstamp,
-			'val' => $value,
+//			'val' => $value,
 			'value' => $obj->value,
 			'light' => $obj->light,
 			'humidity' => $obj->humidity,
 			'temp' => $obj->temp,
-			'year' => $obj->year,
-			'month' => $obj->month,
-			'day' => $obj->day,
-			'hour' => $obj->hour,
+//			'year' => $obj->year,
+//			'month' => $obj->month,
+//			'day' => $obj->day,
+//			'hour' => $obj->hour,
 		);
 		return $newArray;
 	}
@@ -309,6 +310,9 @@ class ModuleSensors extends Module
 	{
         $arrData = array();
         $bRoom = false;
+        $bWeekly = false;
+        $bMonthly = false;
+        $nrDays = 1;
 
         // Fetch Sensor data from the database
         $sensObjs = $this->Database->prepare ("SELECT * FROM Sensor WHERE id=?")->limit(1)->execute($id);
@@ -323,21 +327,47 @@ class ModuleSensors extends Module
         	$bRoom = true;
         }
         
-        if (!isset($timestamp)) {
-            $endtime = time();
-        	$starttime = $endtime - (24 * 3600);
-        } else {
-        	$starttime = $timestamp;
-        	$endtime = $starttime + (24 * 3600);
+        // Weekly graph ?
+        if ((strcmp($graph, 'weekly') == 0)) {
+            $bWeekly = true;
+            $nrDays = 7;
+            if (!isset($timestamp))   $timestamp = strtotime ("first day of this week");
         }
 
-        if ((strcmp($graph, 'values') == 0) || (strcmp($graph, 'room') == 0)) {
+        // Monthly graph ?
+        if ((strcmp($graph, 'monthly') == 0)) {
+            $bMonthly = true;
+            if (!isset($timestamp))   $timestamp = strtotime ("first day of this month");
+            $a = getdate ($timestamp);
+            $nrDays = cal_days_in_month (CAL_GREGORIAN, $a["mon"], $a["year"]);
+        }
+
+        // Calculate the range of the graph       
+        if (!isset($timestamp)) {
+            $endtime = time();
+        	$starttime = $endtime - ($nrDays * 24 * 3600);
+            
+        } else {
+        	$starttime = $timestamp;
+        	$endtime = $starttime + ($nrDays * 24 * 3600);
+        }
+
+        if (strcmp($graph, 'motion') != 0) {
+        // it's not a motion graph...
             if ($bRoom) {
-				// Now retrieve the Roomlog, if it is a room sensor, limit to last 24 items
-				$objs = $this->Database->prepare ("SELECT * FROM Roomlog WHERE pid=? AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+				// Now retrieve the Roomlog, if it is a room sensor
+				if ($bWeekly || $bMonthly) {
+    				$objs = $this->Database->prepare ("SELECT tstamp,light,humidity,temp FROM HourlyRoomlog WHERE pid=? AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+    			} else {
+    				$objs = $this->Database->prepare ("SELECT * FROM Roomlog WHERE pid=? AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+    			}
 			} else {
 				// Retrieve the Sensorlog
-				$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=?  AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+				if ($bWeekly || $bMonthly) {
+    				$objs = $this->Database->prepare ("SELECT tstamp,value FROM HourlySensorlog WHERE pid=?  AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+    			} else {
+    				$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=?  AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+    			}
 			}
 			if ($objs->last()) {
 				$arrData[] = $this->log2arr($objs,'');
@@ -415,7 +445,12 @@ class ModuleSensors extends Module
 			if ($bRoom) {                
 				// Prepare for javascript...
 				$set1[] = "[" . $time . "," . $obj['temp'] . "]";
-				$set2[] = "[" . $time . "," . $obj['light'] . "]";
+				if (!$bMonthly) {
+				    // light is not so interesting for monthly graphs
+				    $set2[] = "[" . $time . "," . $obj['light'] . "]";
+				} else {
+				    $set2[] = null;
+				}
 				$set3[] = "[" . $time . "," . $obj['humidity']."]";
 			} else {
 				$set1[] = "[" . $time . "," . $obj['value'] . "]";
@@ -435,24 +470,45 @@ class ModuleSensors extends Module
         $this->Template->sensor = $arrSensor;
         $this->Template->bRoom = $bRoom;
         $this->Template->date = $timestamp;
+        // Debug
+        // $this->Template->arr = $arrData;
+        // $this->Template->starttime = $starttime;
+        // $this->Template->endtime = $endtime;
+        
         // Start building the title, first get timestamps of yesterday and tomorrow
         
+        
         if ($timestamp == 0 or !isset($timestamp)) {
-        	$yesterday = strtotime ("yesterday");
-        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$yesterday.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$prev = strtotime ("yesterday");
+        	if ($bWeekly) $prev = strtotime ("Monday last week");
+        	if ($bMonthy) $prev = strtotime ("first day of previous month");
+        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Last 24 hours &nbsp;'.$arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         } else {
-        	$yesterday = strtotime ("yesterday", $timestamp);
-        	$tomorrow = strtotime ("tomorrow", $timestamp);
-        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$yesterday.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$prev = strtotime ("yesterday", $timestamp);
+        	$next = strtotime ("tomorrow", $timestamp);
+        	if ($bWeekly) {
+        	    $prev = strtotime ("Monday previous week", $timestamp);
+        	    $next = strtotime ("Monday next week", $timestamp);
+            }
+        	if ($bMonthly) {
+        	    $prev = strtotime ("first day of previous month", $timestamp);
+        	    $next = strtotime ("first day of next month", $timestamp);
+            }
+
+        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Date '.date("l, d-m-Y",$timestamp);
-        	$title .= '&nbsp;<a href="index.php/Sensors/item/'.$id.'/date/'.$tomorrow.'/graph/'.$graph.'.html">></a>&nbsp;';
+        	$title .= '&nbsp;<a href="index.php/Sensors/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
             $title .= $arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         }
         
 
        // Create the appropriate graph
-        if (strcmp($graph, 'values') == 0) {
+       if (strcmp($graph, 'motion') == 0) {
+				$this->Template->title = 'Motion Sensor &nbsp;'.$title;
+				$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
+				$this->Template->l1 = 'Motion detected';    // legends for the dataset
+		} else {
             // values graphs
             if ($bRoom) {
 				$this->Template->title = 'Room Node &nbsp;'.$title;
@@ -468,11 +524,7 @@ class ModuleSensors extends Module
 				$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
 				$this->Template->l1 = $arrSensor['location'] . ' ' . $arrSensor['sensorquantity'];    // legends for the dataset
 			} // if bRoom
-        } elseif (strcmp($graph, 'motion') == 0) {
-				$this->Template->title = 'Motion Sensor &nbsp;'.$title;
-				$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
-				$this->Template->l1 = 'Motion detected';    // legends for the dataset
-		} 
+        }
 
     }
 
