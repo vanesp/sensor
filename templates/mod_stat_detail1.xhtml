@@ -23,7 +23,7 @@ ini_set('display_errors','1');
 	</thead>
 	<tr>
 		<td>
-			<?php echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'.html">'.$this->sensor['id'].'</a>'; ?>
+			<?php echo '<a href="Sensors/item/'.$this->sensor['id'].'.html">'.$this->sensor['id'].'</a>'; ?>
 		</td>	
 		<td>
 			<?php echo $this->sensor['idsensor']; ?>
@@ -37,13 +37,13 @@ ini_set('display_errors','1');
 		<td>
 			<?php
                 if ($this->date == 0) {
-                  echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/values.html">Graph</a>&nbsp;';
-                  echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/weekly.html">Week</a>&nbsp;';
-                  echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/monthly.html">Month</a>&nbsp;';
+                  echo '<a href="Sensors/item/'.$this->sensor['id'].'/graph/values.html">Graph</a>&nbsp;';
+                  echo '<a href="Sensors/item/'.$this->sensor['id'].'/graph/weekly.html">Week</a>&nbsp;';
+                  echo '<a href="Sensors/item/'.$this->sensor['id'].'/graph/monthly.html">Month</a>&nbsp;';
                 } else {
-                    echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/values.html">Graph</a>&nbsp;';
-                    echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/weekly.html">Week</a>&nbsp;';
-                    echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/monthly.html">Month</a>&nbsp;';
+                    echo '<a href="Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/values.html">Graph</a>&nbsp;';
+                    echo '<a href="Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/weekly.html">Week</a>&nbsp;';
+                    echo '<a href="Sensors/item/'.$this->sensor['id'].'/date/'.$this->date.'/graph/monthly.html">Month</a>&nbsp;';
                 }
             ?>
 		</td>	
@@ -66,8 +66,8 @@ $(function () {
         { label: "<?php echo $this->l1; ?>",  data: d1}
     ], {
     	xaxes: [ { mode: "time" } ],
-//    	yaxes: [ { min: 0 }
-//    		   ],
+    	yaxes: [ { min: "<?php echo $this->min1; ?>" },
+    		   ],
         series: {
             lines: { show: true }
            //  points: { show: true }

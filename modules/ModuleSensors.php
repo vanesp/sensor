@@ -1,4 +1,4 @@
-<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
+<?php
 
 // <copyright> Copyright (c) 2012-2013 All Rights Reserved,
 // Escurio BV
@@ -13,12 +13,21 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.3</version>
+// <version>1.5</version>
 // <email>vanesp@escurio.com</email>
-// <date>2013-01-01</date>
+// <date>2013-12-06</date>
 
-// Version changes: 1.2, 2013-01-01 - remove id from log records
+// Version 1.2, 2013-01-01 - remove id from log records
 // Version 1.3, 2013-07-31 - add weekly / monthly graphs
+// Version 1.4, 2013-08-03 - zero base all scales except for outdoor temperature
+// Version 1.5, 2013-12-06 - changes for Contao 3.1.2
+
+
+/**
+ * Run in a custom namespace, so the class can be replaced
+ */
+namespace Contao;
+
 
  /**
  * Class ModuleSensors
@@ -26,7 +35,7 @@
  * Front end module "Sensors".
  * @package    Controller
  */
-class ModuleSensors extends Module
+class ModuleSensors extends \Module
 {
 
 	/**
@@ -45,9 +54,9 @@ class ModuleSensors extends Module
 	{
 		if (TL_MODE == 'BE')
 		{
-			$objTemplate = new BackendTemplate('be_wildcard');
+			$objTemplate = new \BackendTemplate('be_wildcard');
 
-			$objTemplate->wildcard = '### SENSORS LIST ###';
+			$objTemplate->wildcard = '### ' . utf8_strtoupper($GLOBALS['TL_LANG']['FMD']['Sensors'][0]) . ' ###';
 			$objTemplate->title = $this->headline;
 			$objTemplate->id = $this->id;
 			$objTemplate->link = $this->name;
@@ -152,22 +161,22 @@ class ModuleSensors extends Module
 		// go and interpret values to add trafficlight system
 		$last = $objSensors->tstamp;
 		$now = time();					// return unix time
-		$monitoredurl = '<img src="/system/modules/sensor/html/Red.png" alt="Not recently Monitored" />';
+		$monitoredurl = '<img src="/system/modules/sensor/assets/Red.png" alt="Not recently Monitored" />';
 		if ($last+6*60 >= $now) {
 			// monitored within last 6 mins
-			$monitoredurl = '<img src="/system/modules/sensor/html/Green.png" alt="Monitored within 6 mins" />';
+			$monitoredurl = '<img src="/system/modules/sensor/assets/Green.png" alt="Monitored within 6 mins" />';
 		} else {
 			if ($last+12*60 >= $now) {
-				$monitoredurl = '<img src="/system/modules/sensor/html/Orange.png" alt="Monitored within 12 mins" />';
+				$monitoredurl = '<img src="/system/modules/sensor/assets/Orange.png" alt="Monitored within 12 mins" />';
 			}
 		}
 		
 		// verify machine status
 		if ($objSensors->lobatt == 1)  {
             // PvE:its a low battery
-            $machineurl = '<img src="/system/modules/sensor/html/Red.png" alt="Battery dead" />';
+            $machineurl = '<img src="/system/modules/sensor/assets/Red.png" alt="Battery dead" />';
 		} else {
-            $machineurl = '<img src="/system/modules/sensor/html/Green.png" alt="Battery ok" />';
+            $machineurl = '<img src="/system/modules/sensor/assets/Green.png" alt="Battery ok" />';
 		}
         
         // now retrieve the last measured value = current value for each sensor
@@ -482,7 +491,7 @@ class ModuleSensors extends Module
         	$prev = strtotime ("yesterday");
         	if ($bWeekly) $prev = strtotime ("Monday last week");
         	if ($bMonthy) $prev = strtotime ("first day of previous month");
-        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Last 24 hours &nbsp;'.$arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         } else {
         	$prev = strtotime ("yesterday", $timestamp);
@@ -496,9 +505,9 @@ class ModuleSensors extends Module
         	    $next = strtotime ("first day of next month", $timestamp);
             }
 
-        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Date '.date("l, d-m-Y",$timestamp);
-        	$title .= '&nbsp;<a href="index.php/Sensors/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
+        	$title .= '&nbsp;<a href="Sensors/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
             $title .= $arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         }
         
@@ -508,6 +517,9 @@ class ModuleSensors extends Module
 				$this->Template->title = 'Motion Sensor &nbsp;'.$title;
 				$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
 				$this->Template->l1 = 'Motion detected';    // legends for the dataset
+				$this->Template->min1 = 0;                  // minimum of left hand axis
+				// $this->Template->max1 = 1;                  // maximum of left hand axis
+				
 		} else {
             // values graphs
             if ($bRoom) {
@@ -518,11 +530,19 @@ class ModuleSensors extends Module
 				$this->Template->l1 = "&deg;C";                           // legend 1
 				$this->Template->l2 = "light";                           // legend 2
 				$this->Template->l3 = "% RH";                           // legend 3
+    			$this->Template->min1 = 0;
+				// $this->Template->max1 = 40;                  // maximum of left hand axis
 			} else {
 				// single quantity
 				$this->Template->title = 'Sensor &nbsp;'.$title;
 				$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
 				$this->Template->l1 = $arrSensor['location'] . ' ' . $arrSensor['sensorquantity'];    // legends for the dataset
+                if (strcmp($arrSensor['sensortype'], 'Temperature') == 0) {
+    				$this->Template->min1 = -10;    // minimum of left hand axis
+    				// $this->Template->max1 = 40;                  // maximum of left hand axis
+                } else {
+       				$this->Template->min1 = 0;
+                }
 			} // if bRoom
         }
 

@@ -1,4 +1,4 @@
-<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
+<?php
 
 // <copyright> Copyright (c) 2012-2013 All Rights Reserved,
 // Escurio BV
@@ -13,9 +13,19 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.1</version>
+// <version>1.2</version>
 // <email>vanesp@escurio.com</email>
-// <date>2012-12-06</date>
+// <date>2013-12-06</date>
+
+// Version 1.2, 2013-12-06 - changes for Contao 3.1.2
+
+
+/**
+ * Run in a custom namespace, so the class can be replaced
+ */
+namespace Contao;
+
+
 
  /**
  * Class ModuleElectricity
@@ -23,7 +33,7 @@
  * Front end module "Sensors".
  * @package    Controller
  */
-class ModuleElectricity extends Module
+class ModuleElectricity extends \Module
 {
 
 	/**
@@ -42,9 +52,9 @@ class ModuleElectricity extends Module
 	{
 		if (TL_MODE == 'BE')
 		{
-			$objTemplate = new BackendTemplate('be_wildcard');
+			$objTemplate = new \BackendTemplate('be_wildcard');
 
-			$objTemplate->wildcard = '### ELECTRICITY USAGE ###';
+			$objTemplate->wildcard = '### ' . utf8_strtoupper($GLOBALS['TL_LANG']['FMD']['Electricity'][0]) . ' ###';
 			$objTemplate->title = $this->headline;
 			$objTemplate->id = $this->id;
 			$objTemplate->link = $this->name;
@@ -154,22 +164,22 @@ class ModuleElectricity extends Module
 		// go and interpret values to add trafficlight system
 		$last = $objSensors->tstamp;
 		$now = time();					// return unix time
-		$monitoredurl = '<img src="/system/modules/sensor/html/Red.png" alt="Not recently Monitored" />';
+		$monitoredurl = '<img src="/system/modules/sensor/assets/Red.png" alt="Not recently Monitored" />';
 		if ($last+6*60 >= $now) {
 			// monitored within last 6 mins
-			$monitoredurl = '<img src="/system/modules/sensor/html/Green.png" alt="Monitored within 6 mins" />';
+			$monitoredurl = '<img src="/system/modules/sensor/assets/Green.png" alt="Monitored within 6 mins" />';
 		} else {
 			if ($last+12*60 >= $now) {
-				$monitoredurl = '<img src="/system/modules/sensor/html/Orange.png" alt="Monitored within 12 mins" />';
+				$monitoredurl = '<img src="/system/modules/sensor/assets/Orange.png" alt="Monitored within 12 mins" />';
 			}
 		}
 		
 		// verify machine status
 		if ($objSensors->lobatt == 1)  {
             // PvE:its a low battery
-            $machineurl = '<img src="/system/modules/sensor/html/Red.png" alt="Battery dead" />';
+            $machineurl = '<img src="/system/modules/sensor/assets/Red.png" alt="Battery dead" />';
 		} else {
-            $machineurl = '<img src="/system/modules/sensor/html/Green.png" alt="Battery ok" />';
+            $machineurl = '<img src="/system/modules/sensor/assets/Green.png" alt="Battery ok" />';
 		}
         
         // now retrieve the last measured value = current value for each sensor
@@ -261,6 +271,7 @@ class ModuleElectricity extends Module
 	{
         $arrData = array();
         $isdaily = true;
+        $nodata = false;                    // do we have no data yet
        
         if (!isset($graph)) {               // else monthly
             $graph='daily';
@@ -272,13 +283,13 @@ class ModuleElectricity extends Module
             $isdaily = false;
         }
 
-        if (!isset($timestamp)) {
+        if (!isset($timestamp) || $timestamp == NULL) {
             if ($isdaily) {
                 $nrdays = 1;
             } else {
                 $nrdays = date("t");            // php trick to return number of days in current month
             }
-            $endtime = time();
+            $endtime = time() - 3600; // current time minus one hour
         	$starttime = $endtime - ($nrdays * 24 * 3600);
         	$timestamp = $starttime;
         } else {
@@ -297,11 +308,18 @@ class ModuleElectricity extends Module
 	    } else {
 		    $objs = $this->Database->prepare ("SELECT tstamp, value FROM DailyEleclog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
 	    } 
-		if ($objs->last()) {
-			$arrData[] = $this->elec2arr($objs,'');
-			while ($objs->prev()) {
+	    
+	    // test if $objs exists at all... otherwise no data
+	    
+		if ($objs->count() > 0) {
+		    if ($objs->last()) {
+			    $arrData[] = $this->elec2arr($objs,'');
+			    while ($objs->prev()) {
 					$arrData[] = $this->elec2arr($objs,'');
+				}
 			}
+		} else {
+		    $nodata = true;
 		}
 
 		// Now we create the datasets for the graphs...
@@ -338,18 +356,22 @@ class ModuleElectricity extends Module
         // Start building the title, first get timestamps of yesterday and tomorrow
         
         if ($timestamp == 0 or !isset($timestamp)) {
-        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Last 24 hours &nbsp;';
         } else {
-        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Date '.date("l, d-m-Y",$timestamp);
-        	$title .= '&nbsp;<a href="index.php/Electricity/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
+        	$title .= '&nbsp;<a href="Electricity/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
         }
         
 
         // Create the appropriate graph
 	    $this->Template->title = 'Electricity &nbsp;'.$title;
-		$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
+	    if ($nodata) {
+		    $this->Template->js1 = '';  
+	    } else {
+		    $this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
+		}
 		$this->Template->l1 = ' Usage W';    // legends for the dataset
 
     }

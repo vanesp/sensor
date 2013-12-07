@@ -1,5 +1,4 @@
-<?php if (!defined('TL_ROOT')) die('You can not access this file directly!');
-
+<?php
 // <copyright> Copyright (c) 2012-2013 All Rights Reserved,
 // Escurio BV
 // http://www.escurio.com/
@@ -11,21 +10,29 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.0</version>
+// <version>1.1</version>
 // <email>vanesp@escurio.com</email>
-// <date>2012-07-27</date>
+// <date>2013-12-06</date>
 // <summary>config.php defines the sensor module in contao</summary>
 
-// <summary>ModuleCustomers shows customer information</summary>
+// <summary>ModuleLocations shows location information</summary>
+
+// Version 1.1, 2013-12-06 - changes for Contao 3.1.2
+
+
+/**
+ * Run in a custom namespace, so the class can be replaced
+ */
+namespace Contao;
 
 
  /**
- * Class ModuleCustomers
+ * Class ModuleLocations
  *
- * Front end module "Customers".
+ * Front end module "Locations".
  * @package    Controller
  */
-class ModuleCustomers extends Module
+class ModuleLocations extends \Module
 {
 
 	/**
@@ -44,9 +51,9 @@ class ModuleCustomers extends Module
 	{
 		if (TL_MODE == 'BE')
 		{
-			$objTemplate = new BackendTemplate('be_wildcard');
+			$objTemplate = new \BackendTemplate('be_wildcard');
 
-			$objTemplate->wildcard = '### CUSTOMER LIST ###';
+			$objTemplate->wildcard = '### ' . utf8_strtoupper($GLOBALS['TL_LANG']['FMD']['Locations'][0]) . ' ###';
 			$objTemplate->title = $this->headline;
 			$objTemplate->id = $this->id;
 			$objTemplate->link = $this->name;
@@ -54,16 +61,18 @@ class ModuleCustomers extends Module
 
 			return $objTemplate->parse();
 		}
-		
+ 
+	
 		return parent::generate();
 	}
-	
+
+
 	/**
-	 * Sort out protected customer records
+	 * Sort out which location records we can access
 	 * @param array
 	 * @return array
 	 */
-	protected function accessCustomers()
+	protected function accessLocations()
 	{
 
 		$this->import('FrontendUser', 'User');
@@ -80,117 +89,176 @@ class ModuleCustomers extends Module
 		// check if that e-mail is in the user table
 		$objUser = $this->Database->prepare("SELECT email FROM tl_user WHERE LOWER(email)=?")->limit(1)->execute($objMember->email);
 		if ((strcmp($objUser->email, $objMember->email)==0) || BE_USER_LOGGED_IN) {
-			// we accept all details, and we have a back end user
-			$objCustomer = $this->Database->prepare("SELECT id FROM Customer ORDER BY id")->execute();
+			// we accept all locations, and we have a back end user
+			$objLocs = $this->Database->prepare("SELECT id FROM Location ORDER BY id")->execute();
             $this->bContaoUser = true;
 		} else {
-			$objCustomer = $this->Database->prepare("SELECT id FROM Customer WHERE LOWER(email)=? ORDER BY id")->execute($objMember->email);
+			$objLocs = $this->Database->prepare("SELECT Location.id AS id FROM Location, Customer WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?) AND Location.pid=Customer.id ORDER BY Location.id")->execute($objMember->email, $objMember->email);
 		}
-		// objCustomer now has a list of customer id's which we are allowed to see	
-		$arrCusts = array();
 
-		while ($objCustomer->next())
+		while ($objLocs->next())
 		{
-			$arrCusts[] = $objCustomer->id;
+			$arrLocs[] = $objLocs->id;
 		}
 
-		return $arrCusts;
+		return $arrLocs;
+	}
+    
+	/**
+	 * Sort out which location records belong to a customer
+	 * @param array
+	 * @return array
+	 */
+	protected function customerLocations($cust)
+	{
+
+		$this->import('FrontendUser', 'User');
+		// First we find out who is logged in... and what their e-mail address is...
+		if (!FE_USER_LOGGED_IN && !BE_USER_LOGGED_IN)
+		{
+			return '';
+		}
+		// $username = $GLOBALS['TL_USERNAME'];	// or we select on $this->User->username;
+		$username = $this->User->username;
+		$objUser = $this->Database->prepare("SELECT email FROM tl_member WHERE username=?")->limit(1)->execute($username);
+		// $objUser->email contains the email address... we have the special case of a holland environment or hwt address
+		// first make it lower case
+		$objUser->email = strtolower($objUser->email);
+		
+		// Simplify the code with a nested list
+		if (strpos($objUser->email, '@hollandenvironment.com') || strpos($objUser->email, '@hollandwatertechnology.com') || BE_USER_LOGGED_IN) {
+			// we accept all locations
+            $this->bContaoUser = true;
+			$objLocs = $this->Database->prepare("SELECT id FROM Location WHERE pid=? ORDER BY id")->execute($cust);
+		} else {
+			$objLocs = $this->Database->prepare("SELECT Location.id AS id FROM Location, Customer
+            WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?)
+            AND Location.pid=Customer.id
+            AND Location.pid=?
+            ORDER BY Location.id")->execute($objUser->email, $objUser->email, $cust);
+		}
+
+		while ($objLocs->next())
+		{
+			$arrLocs[] = $objLocs->id;
+		}
+
+		return $arrLocs;
 	}
 
-
-
+    
 	/**
 	 * convert obj to array
 	 * @param obj
 	 * @return array
 	 */
-	protected function obj2arr($objCusts)
+	protected function obj2arr($objLocs)
 	{
-				$newArray = array
-				(
-					'name' => $objCusts->name,
-					'street' => $objCusts->street,
-					'housenumber' => $objCusts->housenumber,
-					'postalcode' => $objCusts->postalcode,
-					'city' => $objCusts->city,
-					'country' => $objCusts->country,
-					'contactperson' => $objCusts->contactperson,
-					'telephone' => $objCusts->telephone,
-					'email' => $objCusts->email,
-					'id'	=> $objCusts->id,
-					'detailurl' => '<a href="'.$this->addToUrl('&item='.$objCusts->id).'">'. $objCusts->name . '</a>',
-				);
-				return $newArray;
+		// calculate sunrise and sunset using php functions
+		$zenith = 90+50/60;
+		$offset = 1; // offset from UTC in NL
+		$sunrise = date_sunrise (time(), SUNFUNCS_RET_STRING, $objLocs->latitude, $objLocs->longitude, $zenith, $offset);
+		$sunset = date_sunset (time(), SUNFUNCS_RET_STRING, $objLocs->latitude, $objLocs->longitude, $zenith, $offset);
+		
+        $newArray = array
+        (
+            'name' => $objLocs->name,
+            'street' => $objLocs->street,
+            'housenumber' => $objLocs->housenumber,
+            'postalcode' => $objLocs->postalcode,
+            'city' => $objLocs->city,
+            'country' => $objLocs->country,
+            'contactperson' => $objLocs->contactperson,
+            'telephone' => $objLocs->telephone,
+            'email' => $objLocs->email,
+            'comments' => $objLocs->comments,
+            'id'	=> $objLocs->id,
+            'latitude' => $objLocs->latitude,
+            'longitude' => $objLocs->longitude,
+            'sunrise' => $sunrise,
+            'sunset' => $sunset,
+            'detailurl' => '<a href="'.$this->addToUrl('&item='.$objLocs->id).'">'. $objLocs->name . '</a>',
+        );
+
+        // PvE: 2011-12-29 Only show comments to our own users
+        if (!$this->bContaoUser) {
+            $newArray['comments'] = '';
+        }
+
+        return $newArray;
 	}
+
 
 	/**
 	 * List one customer
 	 * @param id value
 	 * @return array
 	 */
-	protected function listCustomer($id)
+	protected function listLocation($id)
 	{
 			// Fetch data from the database
-			$objCusts = $this->Database->prepare ("SELECT * FROM Customer WHERE id=?")->limit(1)->execute($id);
-			$this->strTemplate = 'mod_customer_detail';
+			$objs = $this->Database->prepare ("SELECT * FROM Location WHERE id=?")->limit(1)->execute($id);
+			$this->strTemplate = 'mod_location_detail';
 			$this->Template = new FrontendTemplate ($this->strTemplate);
 			
-			// Put customers into array
-			while ($objCusts->next())
+			// Put locations into array
+			while ($objs->next())
 			{
-					$arrCusts = $this->obj2arr($objCusts);
+					$arrLoc = $this->obj2arr($objs);
 			}
 	
 			// Assign data to the template
-			$this->Template->customer = $arrCusts;
+			$this->Template->location = $arrLoc;
 	}
-
 	
-    /**
-     * Class ContentTable
-     * PvE: 2012-03-02
-     * This is the standard ContentTable element... we just reverse engineer the way the table gets created using a query
-     */
+	/**
+	 * Generate module
+	 */
 	protected function compile()
 	{
-		global $objPage;
+		$arrLocs = array();
         $bNoReport = false;
-		$arrCusts = array();
-		
+
 		// Select appropriate Customers
-		$this->custids = $this->accessCustomers();
-		// item is either an id, or an idCustomer... so check for both
+		$this->locids = $this->accessLocations();
+
+        // we may have a customer... if so, collect locations for that customer only
+
         $this->import('Session'); 
         $this->import('Input');
+        $customer = $this->Input->get('customer');
         $item = $this->Input->get('item');
 
+        if (isset($customer)) {
+            $this->locids = $this->customerLocations($customer);
+        }
+
 		if (isset($item)) {
- 				
-			// check if item in the array of $this->custids, so that we have access
-			if (in_array($item, $this->custids, $strict = null)) {
+			// check if item in the array of $this->custids
+			if (in_array($item, $this->locids, $strict = null)) {
 				// ok, we are allowed to see that item... 
-				$this->listCustomer($item);
+				$this->listLocation($item);
                 return;
 			} else {
-				// can see this customer,
+				// can not see this location,
                 $bNoReport = true;
                 $reason = 'No access to this item: '.$item;
 			}
 		} else {
-			// Return if there are no Customers
-			if (!is_array($this->custids) || count($this->custids) < 1)
+			// Return if there are no Locations
+			if (!is_array($this->locids) || count($this->locids) < 1)
 			{
                 $bNoReport = true;
-                $reason = 'No valid customers.';
+                $reason = 'No valid items.';
             }
-        }
+		}
 
         // if no report show the error page
         if ($bNoReport) {
             $this->strTemplate = 'mod_reports_error';
             $this->Template = new FrontendTemplate ($this->strTemplate);
             $this->Template->user = $username;
-            $this->Template->report = 'Customers';
+            $this->Template->reports = 'Locations';
             $this->Template->reason = $reason;
             return '';
         }
@@ -212,8 +280,8 @@ class ModuleCustomers extends Module
             0 => 'id',
             1 => 'name',
             2 => 'city',
-            3 => 'contactperson',
-            4 => 'email',
+            3 => 'sunrise',
+            4 => 'sunset',
         );
         $fields = 5;
         // set the alignment of the fields
@@ -222,21 +290,22 @@ class ModuleCustomers extends Module
         }
         $i = 1;
         // perform the query
- 		$objs = $this->Database->execute("SELECT id, name, city, contactperson, email FROM Customer WHERE id IN (". implode(',', array_map('intval', $this->custids)) . ") ORDER BY id");
+		$objs = $this->Database->execute("SELECT * FROM Location WHERE id IN (". implode(',', array_map('intval', $this->locids)) . ") ORDER BY id");
         // get the values
         while ($objs->next()) {
+			$arrLoc = $this->obj2arr($objs);
             for ($j = 0; $j < $fields; $j++) {
-                $rows[$i][$j]=$objs->$rows[0][$j];
+                $rows[$i][$j]=$arrLoc[$rows[0][$j]];
                 if ($j == 0) {
                     // id field, make into link
-                    $rows[$i][$j]='<a href="index.php/Customers/item/'.$objs->id.'.html">'.$objs->$rows[0][$j].'</a>';
+                    $rows[$i][$j]= '<a href="Locations/item/'.sprintf("%d", $objs->$rows[0][$j]).'.html">'.sprintf("%d", $objs->$rows[0][$j]).'</a>';
                 }    
             }
             $i++;
         }
         // Set-up general info
-        $this->summary = 'Customers';
-        $this->headline = 'Customers';
+        $this->summary = 'Locations';
+        $this->headline = 'Locations';
         
 		// $rows = deserialize($this->tableitems);
 		$nl2br = ($objPage->outputFormat == 'xhtml') ? 'nl2br_xhtml' : 'nl2br_html5';
@@ -257,8 +326,9 @@ class ModuleCustomers extends Module
 		// Add the CSS and JavaScript files
 		if ($this->sortable)
 		{
-			$GLOBALS['TL_CSS'][] = TL_PLUGINS_URL . 'plugins/tablesort/css/tablesort.css|screen';
-			$GLOBALS['TL_MOOTOOLS'][] = '<script src="' . TL_PLUGINS_URL . 'plugins/tablesort/js/tablesort.js"></script>';
+			// $GLOBALS['TL_CSS'][] = TL_PLUGINS_URL . 'plugins/tablesort/css/tablesort.css|screen';
+			// $GLOBALS['TL_MOOTOOLS'][] = '<script src="' . TL_PLUGINS_URL . 'plugins/tablesort/js/tablesort.js"></script>';
+			// now part of jquery
 			$this->Template->sortable = true;
 		}
 
@@ -355,8 +425,7 @@ class ModuleCustomers extends Module
 
 		$this->Template->footer = $arrFooter;
 	}
-
-
+	
 }
 
 ?>

@@ -20,7 +20,7 @@
 /**
  * Back end modules
  */
-$GLOBALS['TL_LANG']['MOD']['SensorMod'] = 'Sensor System';
+$GLOBALS['TL_LANG']['MOD']['sensor'] = 'Sensor System';
 $GLOBALS['TL_LANG']['MOD']['Customers'] = array('Customers, Locations', 'Manage Customers, Locations');
 $GLOBALS['TL_LANG']['MOD']['Sensors'] = array('Sensors', 'Manage Sensors');
 $GLOBALS['TL_LANG']['MOD']['Actions'] = array('Actions', 'Manage Actions');
@@ -33,6 +33,6 @@ $GLOBALS['TL_LANG']['FMD']['Sensors'] = array('Sensors');
 $GLOBALS['TL_LANG']['FMD']['Customers'] = array('Customers');
 $GLOBALS['TL_LANG']['FMD']['Locations'] = array('Locations');
 $GLOBALS['TL_LANG']['FMD']['Actions'] = array('Actions');
-$GLOBALS['TL_LANG']['FMD']['Statistics'] = array('Statistics');
+$GLOBALS['TL_LANG']['FMD']['Electricity'] = array('Electricity');
 
 ?>

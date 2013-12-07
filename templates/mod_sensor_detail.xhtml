@@ -31,7 +31,7 @@ ini_set('display_errors','1');
 			<?php echo $this->sensor['idsensor']; ?>
 		</td>	
 		<td>
-			<?php echo '<a href="index.php/Locations/item/'.$this->sensor['pid'].'.html">'.$this->sensor['pid'].'</a>'; ?>
+			<?php echo '<a href="Locations/item/'.$this->sensor['pid'].'.html">'.$this->sensor['pid'].'</a>'; ?>
 		</td>	
 		<td>
 			<?php echo $this->sensor['location']; ?>
@@ -46,9 +46,9 @@ ini_set('display_errors','1');
 			<?php echo $this->sensor['machineimg']; ?>
 		</td>	
 		<td>
-			<?php echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/values.html">Graph</a>&nbsp;'; ?>
+			<?php echo '<a href="Sensors/item/'.$this->sensor['id'].'/graph/values.html">Graph</a>&nbsp;'; ?>
 			<?php 
-				if ($this->sensor['sensortype'] == 'RNR') echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/motion.html">Motion</a>&nbsp;'; 
+				if ($this->sensor['sensortype'] == 'RNR') echo '<a href="Sensors/item/'.$this->sensor['id'].'/graph/motion.html">Motion</a>&nbsp;'; 
 			?>
 		</td>	
 	</tr>

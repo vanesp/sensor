@@ -24,6 +24,5 @@ $GLOBALS['TL_DCA']['tl_module']['palettes']['Customers'] = 'name,type,headline;a
 $GLOBALS['TL_DCA']['tl_module']['palettes']['Locations'] = 'name,type,headline;align,space,cssID';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['Sensors'] = 'name,type,headline;align,space,cssID';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['Actions'] = 'name,type,headline;align,space,cssID';
-$GLOBALS['TL_DCA']['tl_module']['palettes']['Statistics'] = 'name,type,headline;align,space,cssID';
 ?>
 

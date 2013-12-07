@@ -13,11 +13,11 @@ ini_set('display_errors','1');
 <p>
 			<?php
                 if ($this->date == 0) {
-                  echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/graph/daily.html">Daily</a>&nbsp;';
-                  echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/graph/monthly.html">Month</a>&nbsp;';
+                  echo '<a href="Electricity/item/'.$this->sensorid.'/graph/daily.html">Daily</a>&nbsp;';
+                  echo '<a href="Electricity/item/'.$this->sensorid.'/graph/monthly.html">Month</a>&nbsp;';
                 } else {
-                    echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/date/'.$this->date.'/graph/daily.html">Daily</a>&nbsp;';
-                    echo '<a href="index.php/Electricity/item/'.$this->sensorid.'/date/'.$this->date.'/graph/monthly.html">Month</a>&nbsp;';
+                    echo '<a href="Electricity/item/'.$this->sensorid.'/date/'.$this->date.'/graph/daily.html">Daily</a>&nbsp;';
+                    echo '<a href="Electricity/item/'.$this->sensorid.'/date/'.$this->date.'/graph/monthly.html">Month</a>&nbsp;';
                 }
             ?>
 <p>

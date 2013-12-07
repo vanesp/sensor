@@ -18,7 +18,7 @@
 
 // Buttons
 $GLOBALS['TL_LANG']['Location']['new']= array('New location', 'Create a new location');
-$GLOBALS['TL_LANG']['Location']['edit']= array('Edit', 'Edit Sample Descriptions %s');
+$GLOBALS['TL_LANG']['Location']['edit']= array('Edit', 'Edit Location Descriptions %s');
 $GLOBALS['TL_LANG']['Location']['delete']= array('Delete', 'Delete location %s');
 $GLOBALS['TL_LANG']['Location']['show']= array('Show', 'Show location %s');
 $GLOBALS['TL_LANG']['Location']['editheader']= array('Edit location', 'Edit location record');

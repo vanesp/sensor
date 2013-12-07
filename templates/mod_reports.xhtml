@@ -38,7 +38,7 @@
 <?php if ($i == 0 && $this->useLeftTh): ?>
   <th scope="row" class="<?php echo $col['class']; ?>"><?php echo $col['content']; ?></th>
 <?php else: ?>
-  <td class="<?php echo $col['class']; ?>" align="<?php echo $col['align']; ?>">
+  <td class="<?php echo $col['class']; ?>"  width="150px" align="<?php echo $col['align']; ?>">
   <?php
   					if ($col['content'] < 0) {
 						echo ' <font color=red>';
@@ -56,15 +56,6 @@
 </table>
 <?php if ($this->sortable): ?>
 
-<!-- indexer::stop -->
-<script type="text/javascript">
-/* <![CDATA[ */
-window.addEvent('domready', function() {
-  new TableSort('<?php echo $this->id; ?>', '<?php echo $this->thousandsSeparator; ?>', '<?php echo $this->decimalSeparator; ?>');
-});
-/* ]]> */
-</script>
-<!-- indexer::continue -->
 <?php endif; ?>
 
 </div>
