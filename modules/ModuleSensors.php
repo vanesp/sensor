@@ -322,6 +322,7 @@ class ModuleSensors extends \Module
         $bWeekly = false;
         $bMonthly = false;
         $nrDays = 1;
+        $nodata = false;
 
         // Fetch Sensor data from the database
         $sensObjs = $this->Database->prepare ("SELECT * FROM Sensor WHERE id=?")->limit(1)->execute($id);
@@ -378,12 +379,17 @@ class ModuleSensors extends \Module
     				$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=?  AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
     			}
 			}
-			if ($objs->last()) {
-				$arrData[] = $this->log2arr($objs,'');
-				while ($objs->prev()) {
-						$arrData[] = $this->log2arr($objs,'');
-				}
-			}
+			// check if we have data at all
+			if ($objs->count() > 0) {
+                if ($objs->last()) {
+                    $arrData[] = $this->log2arr($objs,'');
+                    while ($objs->prev()) {
+                            $arrData[] = $this->log2arr($objs,'');
+                    }
+                }
+    		} else {
+    		    $nodata = true;
+    		}
 		}
 
         if (strcmp($graph, 'motion') == 0) {
@@ -524,9 +530,16 @@ class ModuleSensors extends \Module
             // values graphs
             if ($bRoom) {
 				$this->Template->title = 'Room Node &nbsp;'.$title;
-				$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
-				$this->Template->js2 = '['.implode(",",$set2).']';                           // dataset 2
-				$this->Template->js3 = '['.implode(",",$set3).']';                           // dataset 3
+				
+			    if ($nodata) {
+        		    $this->Template->js1 = '';  
+        		    $this->Template->js2 = '';  
+        		    $this->Template->js3 = '';  
+	            } else {
+                    $this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
+                    $this->Template->js2 = '['.implode(",",$set2).']';                           // dataset 2
+                    $this->Template->js3 = '['.implode(",",$set3).']';                           // dataset 3
+                }
 				$this->Template->l1 = "&deg;C";                           // legend 1
 				$this->Template->l2 = "light";                           // legend 2
 				$this->Template->l3 = "% RH";                           // legend 3
@@ -535,7 +548,13 @@ class ModuleSensors extends \Module
 			} else {
 				// single quantity
 				$this->Template->title = 'Sensor &nbsp;'.$title;
-				$this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
+				
+			    if ($nodata) {
+        		    $this->Template->js1 = '';  
+	            } else {
+                    $this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
+                }
+                
 				$this->Template->l1 = $arrSensor['location'] . ' ' . $arrSensor['sensorquantity'];    // legends for the dataset
                 if (strcmp($arrSensor['sensortype'], 'Temperature') == 0) {
     				$this->Template->min1 = -10;    // minimum of left hand axis
