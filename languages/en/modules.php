@@ -11,10 +11,10 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.0</version>
+// <version>1.1</version>
 // <email>vanesp@escurio.com</email>
-// <date>2012-07-27</date>
-// <summary>languages/en/modules.php defines the bifipro module</summary>
+// <date>2013-12-15</date>
+// <summary>languages/en/modules.php defines the sensor module</summary>
 
 
 /**
@@ -23,6 +23,7 @@
 $GLOBALS['TL_LANG']['MOD']['sensor'] = 'Sensor System';
 $GLOBALS['TL_LANG']['MOD']['Customers'] = array('Customers, Locations', 'Manage Customers, Locations');
 $GLOBALS['TL_LANG']['MOD']['Sensors'] = array('Sensors', 'Manage Sensors');
+$GLOBALS['TL_LANG']['MOD']['Switches'] = array('Switches', 'Manage Switches');
 $GLOBALS['TL_LANG']['MOD']['Actions'] = array('Actions', 'Manage Actions');
 
 

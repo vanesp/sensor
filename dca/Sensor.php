@@ -30,7 +30,6 @@ $GLOBALS['TL_DCA']['Sensor'] = array
 		'ctable' => array('Actionlog'),
 		'notEditable'		=> false,
         'enableVersioning'  => true,
-        'enableVersioning'  => true,
 		'closed' => false 			// implicit
 	),
 

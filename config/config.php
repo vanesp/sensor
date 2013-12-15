@@ -13,7 +13,7 @@
 // <author>Peter van Es</author>
 // <version>2.0</version>
 // <email>vanesp@escurio.com</email>
-// <date>2013-12-06</date>
+// <date>2013-12-15</date>
 // <summary>config.php defines the sensor module in contao</summary>
 
 // Backend-Module
@@ -30,6 +30,12 @@ array_insert($GLOBALS['BE_MOD']['sensor'], 0,
 		(
 			'tables' => array('Sensor', 'Actionlog'),
 			'icon' => 'system/modules/sensor/assets/sensor16.png'
+		),
+
+		'Switches' => array 
+		(
+			'tables' => array('Switch', 'Actionlog'),
+			'icon' => 'system/modules/sensor/assets/Switch16.png'
 		),
 
 		'Actions' => array 

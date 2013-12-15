@@ -11,10 +11,10 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.0</version>
+// <version>1.1</version>
 // <email>vanesp@escurio.com</email>
-// <date>2012-07-27</date>
-// <summary>tl_modules.php defines the bifipro module</summary>
+// <date>2013-12-15</date>
+// <summary>tl_modules.php defines the Sensors module</summary>
 
 
 /**
@@ -23,6 +23,7 @@
 $GLOBALS['TL_DCA']['tl_module']['palettes']['Customers'] = 'name,type,headline;align,space,cssID';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['Locations'] = 'name,type,headline;align,space,cssID';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['Sensors'] = 'name,type,headline;align,space,cssID';
+$GLOBALS['TL_DCA']['tl_module']['palettes']['Switches'] = 'name,type,headline;align,space,cssID';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['Actions'] = 'name,type,headline;align,space,cssID';
 ?>
 
