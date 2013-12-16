@@ -31,8 +31,7 @@ CREATE TABLE `Switch` (
   `comments` varchar(4096) DEFAULT NULL COMMENT 'Comments time_on installation, remarks',
   `strategy` varchar(45) DEFAULT NULL,
   `command` varchar(80) DEFAULT NULL,
-  `kaku` varchar(8) DEFAULT NULL,
-  `newkaku` varchar(20) DEFAULT NULL,
+  `kaku` varchar(20) DEFAULT NULL,
   `time_on` varchar(8) DEFAULT NULL,
   `time_off` varchar(8) DEFAULT NULL,
   `state` varchar(8) DEFAULT NULL,
@@ -118,7 +117,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 (
 	// palettes settings
 	'default'               => '{Switch_legend}, pid, sensor_id, description, uid, comments;
-					{activity_legend}, strategy, command, kaku, newkaku, time_on, time_off, duration'
+					{activity_legend}, strategy, command, kaku, time_on, time_off, duration'
 ),
 
 
@@ -193,15 +192,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		'sorting'				  => false,
 		'filter'				  => false,
 		'inputType'               => 'text',
-		'eval'                    => array('mandatory'=>false, 'minLength'=>1, 'maxlength'=>15, 'tl_class'=>'w50')
-	),
-	'newkaku' => array
-	(
-		'label'                   => &$GLOBALS['TL_LANG']['Switch']['newkaku'],
-		'search'                  => false,
-		'default'				  => '', 
-		'inputType'               => 'text',
-		'eval'                    => array('mandatory'=>false, 'minLength'=>1, 'maxlength'=>15, 'tl_class'=>'w50')
+		'eval'                    => array('mandatory'=>false, 'minLength'=>1, 'maxlength'=>20, 'tl_class'=>'w50')
 	),
 	'time_on' => array
 	(
