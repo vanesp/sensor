@@ -39,6 +39,7 @@ $GLOBALS['TL_LANG']['Switch']['comments']= array('Comments... Not for actionlog 
 $GLOBALS['TL_LANG']['Switch']['strategy']= array('Strategy', 'Determine how this switch should be activated (time_on motion, or rising or setting of the sun, evening only, time on and off, light levels, or simulated presence.');
 $GLOBALS['TL_LANG']['Switch']['command']= array('Command', 'Enter the command string to activate this switch, e.g. SendKAKU E1, or SendNewKAKU 2,. Do include the trailing comma');
 $GLOBALS['TL_LANG']['Switch']['kaku']= array('Kaku', 'Klik-Aan-Klik-Uit identifier, e.g. E1 or e.g. 0x285E880');
+$GLOBALS['TL_LANG']['Switch']['olddim']= array('Dimmer', 'Dimmer function for old KAKU switches (1=yes, 0=no)');
 $GLOBALS['TL_LANG']['Switch']['time_on']= array('Time on', 'Time at which to switch on');
 $GLOBALS['TL_LANG']['Switch']['time_off']= array('Time off', 'Time at which to switch off');
 $GLOBALS['TL_LANG']['Switch']['duration']= array('Duration', 'Duration (in minutes) activation after an event');

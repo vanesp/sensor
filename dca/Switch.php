@@ -36,7 +36,8 @@ CREATE TABLE `Switch` (
   `time_off` varchar(8) DEFAULT NULL,
   `state` varchar(8) DEFAULT NULL,
   `duration` int(11) DEFAULT NULL COMMENT 'Minutes',
-  PRIMARY KEY (`id`)
+  `olddim` int(1) DEFAULT '0' COMMENT 'Dimmable, old KAKU',
+   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores sensor machine details';*/
 
 if (!defined('TL_ROOT')) die('You can not access this file directly!');
@@ -67,7 +68,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		),
 		'label' => array
 		(
-				'fields'                  => array('id', 'pid', 'idswitch',  'description', 'kaku'), // Fields shown in the panel
+				'fields'                  => array('id', 'pid', 'description',  'strategy', 'kaku'), // Fields shown in the panel
 				'showColumns'             => true,
 				'format'                  => '%s</td><td class="tl_file_list"><a href="contao/main.php?do=Customers&table=Location&id=%s">%s</a></td><td class="tl_file_list">%s'
 		),
@@ -117,7 +118,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 (
 	// palettes settings
 	'default'               => '{Switch_legend}, pid, sensor_id, description, uid, comments;
-					{activity_legend}, strategy, command, kaku, time_on, time_off, duration'
+					{activity_legend}, strategy, command, kaku, olddim, time_on, time_off, duration'
 ),
 
 
@@ -193,6 +194,15 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		'filter'				  => false,
 		'inputType'               => 'text',
 		'eval'                    => array('mandatory'=>false, 'minLength'=>1, 'maxlength'=>20, 'tl_class'=>'w50')
+	),
+	'olddim' => array
+	(
+		'label'                   => &$GLOBALS['TL_LANG']['Switch']['olddim'],
+		'search'                  => false,
+		'default'                 => '0',
+		'inputType'               => 'select',
+		'options'				  => array('0', '1'),
+		'eval'                    => array('mandatory'=>true, 'tl_class'=>'w50')
 	),
 	'time_on' => array
 	(
