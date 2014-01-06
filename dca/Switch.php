@@ -209,14 +209,15 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		'label'                   => &$GLOBALS['TL_LANG']['Switch']['time_on'],
 		'search'                  => false,
 		'inputType'               => 'text',
-		'eval'                    => array('mandatory'=>false, 'rgxp'=>'time', 'minLength'=>1, 'maxlength'=>8, 'tl_class'=>'w50')
+		// 'rgxp'=>'time' does not work and has bade sideeffects... the time is stored as -3600 for 00:00, etc
+		'eval'                    => array('mandatory'=>false, 'minLength'=>1, 'maxlength'=>8, 'tl_class'=>'w50')
 	),
 	'time_off' => array
 	(
 		'label'                   => &$GLOBALS['TL_LANG']['Switch']['time_off'],
 		'search'                  => false,
 		'inputType'               => 'text',
-		'eval'                    => array('mandatory'=>false, 'rgxp'=>'time', 'minLength'=>1, 'maxlength'=>8, 'tl_class'=>'w50')
+		'eval'                    => array('mandatory'=>false, 'minLength'=>1, 'maxlength'=>8, 'tl_class'=>'w50')
 	),
 	'duration' => array
 	(
