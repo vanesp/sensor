@@ -4,7 +4,7 @@
 // Escurio BV
 // http://www.escurio.com/
 //
-// THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY 
+// THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
 // KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
 // PARTICULAR PURPOSE.
@@ -43,5 +43,7 @@ $GLOBALS['TL_LANG']['Switch']['olddim']= array('Dimmer', 'Dimmer function for ol
 $GLOBALS['TL_LANG']['Switch']['time_on']= array('Time on', 'Time at which to switch on (format hh:mm)');
 $GLOBALS['TL_LANG']['Switch']['time_off']= array('Time off', 'Time at which to switch off (format hh:mm)');
 $GLOBALS['TL_LANG']['Switch']['duration']= array('Duration', 'Duration (in minutes) activation after an event');
+$GLOBALS['TL_LANG']['Switch']['nextevent']= array('Next Event', 'When the next event takes place');
+$GLOBALS['TL_LANG']['Switch']['state']= array('State', 'State of the switch');
 
 ?>

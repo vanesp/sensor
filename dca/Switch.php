@@ -4,7 +4,7 @@
 // Escurio BV
 // http://www.escurio.com/
 //
-// THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY 
+// THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
 // KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
 // PARTICULAR PURPOSE.
@@ -37,6 +37,7 @@ CREATE TABLE `Switch` (
   `state` varchar(8) DEFAULT NULL,
   `duration` int(11) DEFAULT NULL COMMENT 'Minutes',
   `olddim` int(1) DEFAULT '0' COMMENT 'Dimmable, old KAKU',
+  `nextevent` int(11) DEFAULT NULL,
    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores sensor machine details';*/
 
@@ -68,9 +69,10 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		),
 		'label' => array
 		(
-				'fields'                  => array('id', 'pid', 'description',  'strategy', 'kaku'), // Fields shown in the panel
+				'fields'                  => array('id', 'pid', 'description',  'strategy', 'kaku', 'state', 'nextevent'), // Fields shown in the panel
 				'showColumns'             => true,
-				'format'                  => '%s</td><td class="tl_file_list"><a href="contao/main.php?do=Customers&table=Location&id=%s">%s</a></td><td class="tl_file_list">%s'
+//				'format'                  => '%s</td><td class="tl_file_list"><a href="contao/main.php?do=Customers&table=Location&id=%s">%s</a></td><td class="tl_file_list">%s'
+				'format'                  => '%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s'
 		),
 		'operations' => array
 		(
@@ -118,7 +120,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 (
 	// palettes settings
 	'default'               => '{Switch_legend}, pid, sensor_id, description, uid, comments;
-					{activity_legend}, strategy, command, kaku, olddim, time_on, time_off, duration'
+					{activity_legend}, strategy, command, kaku, olddim, time_on, time_off, duration, state, nextevent'
 ),
 
 
@@ -134,7 +136,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		'filter'				  => true,
 		'exclude'                 => true,
 		'inputType'               => 'select',
-		'foreignKey'	     	  => 'Location.name', 
+		'foreignKey'	     	  => 'Location.name',
 		'eval'                    => array('mandatory'=>true, 'readonly'=> false, 'doNotCopy'=>true, 'includeBlankOption'=>true, 'tl_class'=>'w50')
 	),
 	'sensor_id' => array
@@ -160,7 +162,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 	(
 		'label'                   => &$GLOBALS['TL_LANG']['Switch']['uid'],
 		'inputType'               => 'select',
-		'foreignKey'	     	  => 'tl_user.name', 
+		'foreignKey'	     	  => 'tl_user.name',
 		'eval'                    => array('mandatory'=>true, 'doNotCopy'=>true, 'includeBlankOption'=>true, 'tl_class'=>'w50')
 	),
 	'comments' => array
@@ -218,6 +220,20 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		'search'                  => false,
 		'inputType'               => 'text',
 		'eval'                    => array('mandatory'=>false, 'minLength'=>1, 'maxlength'=>8, 'tl_class'=>'w50')
+	),
+	'state' => array
+	(
+		'label'                   => &$GLOBALS['TL_LANG']['Switch']['state'],
+		'search'                  => false,
+		'inputType'               => 'text',
+		'eval'                    => array('readonly'=>true, 'minLength'=>1, 'maxlength'=>20, 'tl_class'=>'w50')
+	),
+	'nextevent' => array
+	(
+		'label'                   => &$GLOBALS['TL_LANG']['Switch']['nextevent'],
+		'search'                  => false,
+		'inputType'               => 'text',
+		'eval'                    => array('readonly'=>true, 'rgxp'=>'datim', 'minLength'=>1, 'maxlength'=>8, 'tl_class'=>'w50')
 	),
 	'duration' => array
 	(
