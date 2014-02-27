@@ -233,7 +233,7 @@ $GLOBALS['TL_DCA']['Switch'] = array
 		'label'                   => &$GLOBALS['TL_LANG']['Switch']['nextevent'],
 		'search'                  => false,
 		'inputType'               => 'text',
-		'eval'                    => array('readonly'=>true, 'rgxp'=>'datim', 'minLength'=>1, 'maxlength'=>8, 'tl_class'=>'w50')
+		'eval'                    => array('readonly'=>true, 'rgxp'=>'datim', 'minLength'=>1, 'maxlength'=>40, 'tl_class'=>'w50')
 	),
 	'duration' => array
 	(
