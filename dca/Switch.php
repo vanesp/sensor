@@ -225,15 +225,16 @@ $GLOBALS['TL_DCA']['Switch'] = array
 	(
 		'label'                   => &$GLOBALS['TL_LANG']['Switch']['state'],
 		'search'                  => false,
-		'inputType'               => 'text',
-		'eval'                    => array('readonly'=>true, 'minLength'=>1, 'maxlength'=>20, 'tl_class'=>'w50')
+		'inputType'               => 'select',
+		'options'                 => array('ON','OFF','FORCEON','FORCEOFF'),
+		'eval'                    => array('mandatory'=>true, 'minLength'=>1, 'maxlength'=>20, 'tl_class'=>'w50')
 	),
 	'nextevent' => array
 	(
 		'label'                   => &$GLOBALS['TL_LANG']['Switch']['nextevent'],
 		'search'                  => false,
 		'inputType'               => 'text',
-		'eval'                    => array('readonly'=>true, 'rgxp'=>'datim', 'minLength'=>1, 'maxlength'=>40, 'tl_class'=>'w50')
+		'eval'                    => array('mandatory'=>true, 'datepicker'=>true, 'rgxp'=>'datim', 'minLength'=>1, 'maxlength'=>40, 'tl_class'=>'wizard')
 	),
 	'duration' => array
 	(
