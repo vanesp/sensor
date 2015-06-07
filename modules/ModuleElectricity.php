@@ -140,7 +140,7 @@ class ModuleElectricity extends \Module
             AND (Sensor.pid=Customer.id OR Sensor.pid=Location.id)
             AND Location.pid=Customer.id 
             AND Sensor.pid=?
-            AND Sensortype='Electricity'
+            AND sensortype='Electricity'
             ORDER BY Sensor.id")->execute($objMember->email, $objMember->email, $loc);
 		}
 
@@ -356,12 +356,12 @@ class ModuleElectricity extends \Module
         // Start building the title, first get timestamps of yesterday and tomorrow
         
         if ($timestamp == 0 or !isset($timestamp)) {
-        	$title = '<a href="Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Last 24 hours &nbsp;';
         } else {
-        	$title = '<a href="Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Date '.date("l, d-m-Y",$timestamp);
-        	$title .= '&nbsp;<a href="Electricity/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
+        	$title .= '&nbsp;<a href="index.php/Electricity/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
         }
         
 

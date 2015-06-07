@@ -126,7 +126,7 @@ class ModuleLocations extends \Module
 		$objUser->email = strtolower($objUser->email);
 		
 		// Simplify the code with a nested list
-		if (strpos($objUser->email, '@hollandenvironment.com') || strpos($objUser->email, '@hollandwatertechnology.com') || BE_USER_LOGGED_IN) {
+		if (strpos($objUser->email, '@escurio.com') || BE_USER_LOGGED_IN) {
 			// we accept all locations
             $this->bContaoUser = true;
 			$objLocs = $this->Database->prepare("SELECT id FROM Location WHERE pid=? ORDER BY id")->execute($cust);
@@ -298,7 +298,7 @@ class ModuleLocations extends \Module
                 $rows[$i][$j]=$arrLoc[$rows[0][$j]];
                 if ($j == 0) {
                     // id field, make into link
-                    $rows[$i][$j]= '<a href="Locations/item/'.sprintf("%d", $objs->$rows[0][$j]).'.html">'.sprintf("%d", $objs->$rows[0][$j]).'</a>';
+                    $rows[$i][$j]= '<a href="index.php/Locations/item/'.sprintf("%d", $objs->$rows[0][$j]).'.html">'.sprintf("%d", $objs->$rows[0][$j]).'</a>';
                 }    
             }
             $i++;

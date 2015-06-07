@@ -497,7 +497,7 @@ class ModuleSensors extends \Module
         	$prev = strtotime ("yesterday");
         	if ($bWeekly) $prev = strtotime ("Monday last week");
         	if ($bMonthy) $prev = strtotime ("first day of previous month");
-        	$title = '<a href="Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Last 24 hours &nbsp;'.$arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         } else {
         	$prev = strtotime ("yesterday", $timestamp);
@@ -511,9 +511,9 @@ class ModuleSensors extends \Module
         	    $next = strtotime ("first day of next month", $timestamp);
             }
 
-        	$title = '<a href="Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Sensors/item/'.$id.'/date/'.$prev.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Date '.date("l, d-m-Y",$timestamp);
-        	$title .= '&nbsp;<a href="Sensors/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
+        	$title .= '&nbsp;<a href="index.php/Sensors/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
             $title .= $arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         }
         
@@ -596,7 +596,7 @@ class ModuleSensors extends \Module
 
             if ($objs->sensortype == "RNR") {
 				// Now retrieve the Roomlog, if it is a room sensor, limit to last 32 items
-				$objs = $this->Database->prepare ("SELECT * FROM HourlyRoomlog WHERE pid=? ORDER BY tstamp DESC")->limit(24)->execute($idsensor);
+				$objs = $this->Database->prepare ("SELECT * FROM Roomlog WHERE pid=? ORDER BY tstamp DESC")->limit(24)->execute($idsensor);
 			} else {
 				// Now retrieve the Roomlog, if it is a room sensor, limit to last 32 items
 				$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=? ORDER BY tstamp DESC")->limit(24)->execute($idsensor);

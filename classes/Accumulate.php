@@ -127,7 +127,7 @@ class Accumulate extends \Frontend
 											Max(tstamp) as tstamp,
 											Sum(count) as value
 											from Sensorlog 
-											WHERE pid=4 GROUP BY year, month, day, hour")->execute();
+											WHERE pid=8 GROUP BY year, month, day, hour")->execute();
         // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
 		$obj = $this->Database->prepare("REPLACE INTO HourlyEleclog
 		                                    SELECT year, month, day, hour, tstamp, value

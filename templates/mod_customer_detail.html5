@@ -5,6 +5,11 @@
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
 <?php endif; ?>
 
+
+<!-- <?php $this->ShowTemplateVars(); ?> -->
+<?php $this->ShowTemplateVars(); ?>
+
+
 <table cellpadding="4" cellspacing="0" summary="Customer">
 	<tbody>
 	<tr>

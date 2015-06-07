@@ -38,7 +38,7 @@
 			<?php echo $sensor['machineimg']; ?>
 		</td>
 		<td align=left>
-            <?php echo '<a href="Electricity/item/'.$sensor['id'].'/graph/daily.html">Graph</a>&nbsp;'; ?>
+            <?php echo '<a href="index.php/Electricity/item/'.$sensor['id'].'/graph/daily.html">Graph</a>&nbsp;'; ?>
 		</td>	
 		<td align=right>
 			<?php echo $sensor['currentvalue']; ?>

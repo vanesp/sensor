@@ -23,7 +23,7 @@ require ('gChart.php');
 	</thead>
 	<tr>
 		<td>
-			<?php echo '<a href="Sensors/item/'.$this->sensor['id'].'.html">'.$this->sensor['id'].'</a>'; ?>
+			<?php echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'.html">'.$this->sensor['id'].'</a>'; ?>
 		</td>	
 		<td>
 			<?php echo $this->sensor['idsensor']; ?>
@@ -37,9 +37,9 @@ require ('gChart.php');
 		<td>
 			<?php
                 if ($this->year == 0) {
-                  echo '<a href="Sensors/item/'.$this->sensor['idsensor'].'/graph/values.html">Graph</a>&nbsp;';
+                  echo '<a href="index.php/Sensors/item/'.$this->sensor['idsensor'].'/graph/values.html">Graph</a>&nbsp;';
                 } else {
-                    echo '<a href="Sensors/item/'.$this->sensor['idsensor'].'/year/'.$this->year.'/graph/values.html">Graph</a>&nbsp;';
+                    echo '<a href="index.php/Sensors/item/'.$this->sensor['idsensor'].'/year/'.$this->year.'/graph/values.html">Graph</a>&nbsp;';
                 }
             ?>
 		</td>	

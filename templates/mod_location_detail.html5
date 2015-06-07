@@ -5,6 +5,8 @@
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
 <?php endif; ?>
 
+<!-- <?php $this->ShowTemplateVars(); ?> -->
+
 <table cellpadding="4" cellspacing="0" summary="locations">
 	<tbody>
 	<tr>
@@ -100,7 +102,7 @@
 	<tr>
 		<td>Sensors:</td>
 		<td>
-			<?php echo '<a href="Sensors/location/'.$this->location['id'].'.html">Sensors</a>'; ?>
+			<?php echo '<a href="index.php/Sensors/location/'.$this->location['id'].'.html">Sensors</a>'; ?>
 		</td>	
 	</tr>
 	</tbody>
