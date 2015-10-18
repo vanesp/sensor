@@ -133,7 +133,7 @@ class Accumulate extends \Frontend
 		//									WHERE pid=8 GROUP BY year, month, day, hour")->execute();
 		$obj = $this->Database->prepare("CREATE TABLE THEleclog SELECT YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
 											Max(tstamp) as tstamp,
-											Sum(usew) as value
+											(Max(use1)-Min(use1) + Max(use2)-Min(use2))/1000 as value
 											from P1log 
 											WHERE pid=18 GROUP BY year, month, day, hour")->execute();
                 // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
@@ -158,7 +158,7 @@ class Accumulate extends \Frontend
 		// use the P1 log data to fill this table
 		$obj = $this->Database->prepare("CREATE TABLE THGaslog SELECT YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
 											Max(tstamp) as tstamp,
-											Max(gas)-Min(gas) as value
+											(Max(gas)-Min(gas))/1000 as value
 											from P1log 
 											WHERE pid=18 GROUP BY year, month, day, hour")->execute();
                 // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
@@ -168,7 +168,7 @@ class Accumulate extends \Frontend
 
 
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDGaslog")->execute();
-		$obj = $this->Database->prepare("CREATE TABLE TDEleclog SELECT YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day,
+		$obj = $this->Database->prepare("CREATE TABLE TDGaslog SELECT YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day,
 											Max(tstamp) as tstamp,
 											Sum(value) as value
 											from HourlyGaslog 
@@ -180,7 +180,7 @@ class Accumulate extends \Frontend
 
 
 
-		// P1 records
+                // P1 records
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THP1log")->execute();
 		// use the P1 log data to fill this table
 		$obj = $this->Database->prepare("CREATE TABLE THP1log SELECT YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
@@ -216,7 +216,7 @@ class Accumulate extends \Frontend
 											GROUP BY year, month, day")->execute();
                 // Replace into table, but only data that is recent (i.e. within last week), to avoid overwriting old averages
 		$obj = $this->Database->prepare("REPLACE INTO DailyP1log
-		                                    SELECT year, month, day, hour, tstamp, use1, use2, gen1, gen2, mode, usew, genw, gas
+		                                    SELECT year, month, day, tstamp, use1, use2, gen1, gen2, mode, usew, genw, gas
 											FROM TDP1log WHERE tstamp > UNIX_TIMESTAMP()-604800 AND tstamp < UNIX_TIMESTAMP()-3600*24")->execute();
 
 
@@ -229,6 +229,8 @@ class Accumulate extends \Frontend
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDEleclog")->execute();
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THGaslog")->execute();
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDGaslog")->execute();
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THP1log")->execute();
+		$obj = $this->Database->prepare("DROP TABLE IF EXISTS TDP1log")->execute();
 
 		// Delete old motion logs (over a week old)
 		$obj = $this->Database->prepare("DELETE FROM Motionlog WHERE tstamp < UNIX_TIMESTAMP()-604800")->execute();		
