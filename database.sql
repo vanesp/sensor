@@ -24,7 +24,7 @@ CREATE TABLE `Customer` (
   `email` varchar(45) DEFAULT NULL,
   `comments` varchar(4096) DEFAULT NULL COMMENT 'Comments',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='Customer details';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Customer details';
 
 -- Create syntax for TABLE 'DailyEleclog'
 CREATE TABLE `DailyEleclog` (
@@ -119,7 +119,7 @@ CREATE TABLE `Location` (
   `email` varchar(45) DEFAULT NULL,
   `comments` varchar(4096) DEFAULT NULL COMMENT 'Comments',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='Location details';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Location details';
 
 -- Create syntax for TABLE 'Motionlog'
 CREATE TABLE `Motionlog` (
@@ -128,7 +128,7 @@ CREATE TABLE `Motionlog` (
   `tstamp` int(11) DEFAULT NULL,
   `movement` int(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=332584 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create syntax for TABLE 'Roomlog'
 CREATE TABLE `Roomlog` (
@@ -139,7 +139,7 @@ CREATE TABLE `Roomlog` (
   `humidity` float DEFAULT NULL,
   `temp` float DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=27292 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create syntax for TABLE 'Sensor'
 CREATE TABLE `Sensor` (
@@ -162,7 +162,7 @@ CREATE TABLE `Sensor` (
   `highalarm` int(11) DEFAULT NULL,
   `lowalarm` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COMMENT='Stores sensor details';
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Stores sensor details';
 
 -- Create syntax for TABLE 'Sensorlog'
 CREATE TABLE `Sensorlog` (
@@ -172,7 +172,7 @@ CREATE TABLE `Sensorlog` (
   `value` float DEFAULT NULL,
   `count` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=94373 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Create syntax for TABLE 'Switch'
 CREATE TABLE `Switch` (
@@ -194,4 +194,78 @@ CREATE TABLE `Switch` (
   `olddim` int(1) DEFAULT '0' COMMENT 'Dimmable, old KAKU',
   `nextevent` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COMMENT='Stores switch details';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Stores switch details';
+
+-- Create syntax for TABLE 'P1log'
+CREATE TABLE `P1log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pid` int(11) DEFAULT NULL COMMENT 'Sensor.id',
+  `tstamp` int(11) DEFAULT NULL,
+  `use1` int(11) DEFAULT NULL COMMENT 'Electriciteit',
+  `use2` int(11) DEFAULT NULL,
+  `gen1` int(11) DEFAULT NULL COMMENT 'Gegenereerde Electriciteit',
+  `gen2` int(11) DEFAULT NULL,
+  `mode` int(11) DEFAULT NULL,
+  `usew` int(11) DEFAULT NULL COMMENT 'Gebruikte Watt',
+  `genw` int(11) DEFAULT NULL COMMENT 'Gegenereerde Watt',
+  `gas` int(11) DEFAULT NULL COMMENT 'Gas verbruik',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Create syntax for TABLE 'HourlyGaslog'
+CREATE TABLE `HourlyGaslog` (
+  `year` int(11) NOT NULL DEFAULT '0',
+  `month` int(11) NOT NULL DEFAULT '0',
+  `day` int(11) NOT NULL DEFAULT '0',
+  `hour` int(11) NOT NULL DEFAULT '0',
+  `tstamp` int(11) DEFAULT NULL,
+  `value` float DEFAULT NULL,
+  PRIMARY KEY (`year`,`month`,`day`,`hour`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                        
+-- Create syntax for TABLE 'DailyGaslog'
+CREATE TABLE `DailyGaslog` (
+  `year` int(11) NOT NULL DEFAULT '0',
+  `month` int(11) NOT NULL DEFAULT '0',
+  `day` int(11) NOT NULL DEFAULT '0',
+  `tstamp` int(11) DEFAULT NULL,
+  `value` float DEFAULT NULL,
+  PRIMARY KEY (`year`,`month`,`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- Create syntax for TABLE 'HourlyP1log'
+CREATE TABLE `HourlyP1log` (
+  `year` int(11) NOT NULL DEFAULT '0',
+  `month` int(11) NOT NULL DEFAULT '0',
+  `day` int(11) NOT NULL DEFAULT '0',
+  `hour` int(11) NOT NULL DEFAULT '0',
+  `tstamp` int(11) DEFAULT NULL,
+  `use1` int(11) DEFAULT NULL COMMENT 'Electriciteit',
+  `use2` int(11) DEFAULT NULL,
+  `gen1` int(11) DEFAULT NULL COMMENT 'Gegenereerde Electriciteit',
+  `gen2` int(11) DEFAULT NULL,
+  `mode` int(11) DEFAULT NULL,
+  `usew` int(11) DEFAULT NULL COMMENT 'Gebruikte Watt',
+  `genw` int(11) DEFAULT NULL COMMENT 'Gegenereerde Watt',
+  `gas` int(11) DEFAULT NULL COMMENT 'Gas verbruik',
+  PRIMARY KEY (`year`,`month`,`day`,`hour`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                        
+-- Create syntax for TABLE 'DailyP1log'
+CREATE TABLE `DailyP1log` (
+  `year` int(11) NOT NULL DEFAULT '0',
+  `month` int(11) NOT NULL DEFAULT '0',
+  `day` int(11) NOT NULL DEFAULT '0',
+  `tstamp` int(11) DEFAULT NULL,
+  `use1` int(11) DEFAULT NULL COMMENT 'Electriciteit',
+  `use2` int(11) DEFAULT NULL,
+  `gen1` int(11) DEFAULT NULL COMMENT 'Gegenereerde Electriciteit',
+  `gen2` int(11) DEFAULT NULL,
+  `mode` int(11) DEFAULT NULL,
+  `usew` int(11) DEFAULT NULL COMMENT 'Gebruikte Watt',
+  `genw` int(11) DEFAULT NULL COMMENT 'Gegenereerde Watt',
+  `gas` int(11) DEFAULT NULL COMMENT 'Gas verbruik',
+  PRIMARY KEY (`year`,`month`,`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                        
