@@ -1,6 +1,6 @@
 <?php
 
-// <copyright> Copyright (c) 2012-2013 All Rights Reserved,
+// <copyright> Copyright (c) 2012-2015 All Rights Reserved,
 // Escurio BV
 // http://www.escurio.com/
 //
@@ -13,34 +13,32 @@
 //
 // </copyright>
 // <author>Peter van Es</author>
-// <version>1.2</version>
+// <version>1.3</version>
 // <email>vanesp@escurio.com</email>
-// <date>2013-12-06</date>
+// <date>2015-10-23</date>
 
 // Version 1.2, 2013-12-06 - changes for Contao 3.1.2
-
+// Version 1.3, 2015-10-23 - Gas Version
 
 /**
  * Run in a custom namespace, so the class can be replaced
  */
 namespace Contao;
 
-
-
  /**
- * Class ModuleElectricity
+ * Class ModuleGas
  *
  * Front end module "Sensors".
  * @package    Controller
  */
-class ModuleElectricity extends \Module
+class ModuleGas extends \Module
 {
 
 	/**
 	 * Template
 	 * @var string
 	 */
-	protected $strTemplate = 'mod_electric';
+	protected $strTemplate = 'mod_gas';
     protected $bContaoUser = false;
 	
 	
@@ -54,7 +52,7 @@ class ModuleElectricity extends \Module
 		{
 			$objTemplate = new \BackendTemplate('be_wildcard');
 
-			$objTemplate->wildcard = '### ' . utf8_strtoupper($GLOBALS['TL_LANG']['FMD']['Electricity'][0]) . ' ###';
+			$objTemplate->wildcard = '### ' . utf8_strtoupper($GLOBALS['TL_LANG']['FMD']['Gas'][0]) . ' ###';
 			$objTemplate->title = $this->headline;
 			$objTemplate->id = $this->id;
 			$objTemplate->link = $this->name;
@@ -91,13 +89,13 @@ class ModuleElectricity extends \Module
 		if ((strcmp($objUser->email, $objMember->email)==0) || BE_USER_LOGGED_IN) {
 			// we accept all sensors and we have a HWTuser
             $this->bContaoUser = true;
-			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE Sensortype='Electricity' ORDER BY id")->execute();
+			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE Sensortype='P1' ORDER BY id")->execute();
 		} else {
 			$objSensors = $this->Database->prepare("SELECT DISTINCT Sensor.id AS id
 			                                        FROM Sensor, Location, Customer
 			                                        WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?)
 			                                        AND (Sensor.pid=Customer.id OR Sensor.pid=Location.id)
-			                                        AND Location.pid=Customer.id AND Sensortype='Electricity'
+			                                        AND Location.pid=Customer.id AND Sensortype='P1'
 			                                        ORDER BY Sensor.id")->execute($objMember->email, $objMember->email);
 		}
 
@@ -131,16 +129,16 @@ class ModuleElectricity extends \Module
 		// check if that e-mail is in the user table
 		$objUser = $this->Database->prepare("SELECT email FROM tl_user WHERE LOWER(email)=?")->limit(1)->execute($objMember->email);
 		if ((strcmp($objUser->email, $objMember->email)==0) || BE_USER_LOGGED_IN) {
-			// we accept all sensors and we have a HWTuser
+			// we accept all sensors and we have a user
             $this->bContaoUser = true;
-			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE pid=? AND Sensortype='Electricity' ORDER BY id")->execute($loc);
+			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE pid=? AND Sensortype='P1' ORDER BY id")->execute($loc);
 		} else {
 			$objSensors = $this->Database->prepare("SELECT DISTINCT Sensor.id AS id FROM Sensor, Location, Customer
             WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?)
             AND (Sensor.pid=Customer.id OR Sensor.pid=Location.id)
             AND Location.pid=Customer.id 
             AND Sensor.pid=?
-            AND sensortype='Electricity'
+            AND sensortype='P1'
             ORDER BY Sensor.id")->execute($objMember->email, $objMember->email, $loc);
 		}
 
@@ -190,9 +188,10 @@ class ModuleElectricity extends \Module
 			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' L: '.$objs->light. ' % RH: '.$objs->humidity. ' % T: '.$objs->temp. ' &deg;C';
         } else {
         	// regular sensor
-			$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
+			$objs = $this->Database->prepare ("SELECT * FROM P1log ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
 			$objs->next();
-			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' '.$objs->value.' '.$objSensors->sensorquantity;
+			$gas = $objs->gas / 1000;
+			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' '.$gas.' m3';
         }
         
 		$newArray = array
@@ -259,7 +258,7 @@ class ModuleElectricity extends \Module
 	} 
 
 	/**
-	 * List one Electricity chart
+	 * List one Gas chart
 	 * and select more detail info
 	 * @param id value
      * @param yr (year of graph) -- if yr = 0, then current graph
@@ -304,9 +303,9 @@ class ModuleElectricity extends \Module
         }
 
         if ($isdaily) {
-		    $objs = $this->Database->prepare ("SELECT tstamp, value FROM HourlyEleclog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
+		    $objs = $this->Database->prepare ("SELECT tstamp, value FROM HourlyGaslog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
 	    } else {
-		    $objs = $this->Database->prepare ("SELECT tstamp, value FROM DailyEleclog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
+		    $objs = $this->Database->prepare ("SELECT tstamp, value FROM DailyGaslog WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($starttime, $endtime);
 	    } 
 	    
 	    // test if $objs exists at all... otherwise no data
@@ -334,7 +333,7 @@ class ModuleElectricity extends \Module
 		}
         
         
-       	$this->strTemplate = 'mod_elec';
+       	$this->strTemplate = 'mod_gas';
         $this->Template = new FrontendTemplate ($this->strTemplate);
         // Assign data to the template
         $this->Template->date = $timestamp;
@@ -356,23 +355,23 @@ class ModuleElectricity extends \Module
         // Start building the title, first get timestamps of yesterday and tomorrow
         
         if ($timestamp == 0 or !isset($timestamp)) {
-        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Gas/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Last 24 hours &nbsp;';
         } else {
-        	$title = '<a href="index.php/Electricity/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
+        	$title = '<a href="index.php/Gas/item/'.$id.'/date/'.$previous.'/graph/'.$graph.'.html"><</a>&nbsp;';
             $title .= 'Date '.date("l, d-m-Y",$timestamp);
-        	$title .= '&nbsp;<a href="index.php/Electricity/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
+        	$title .= '&nbsp;<a href="index.php/Gas/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
         }
         
 
         // Create the appropriate graph
-	    $this->Template->title = 'Electricity &nbsp;'.$title;
+	    $this->Template->title = 'Gas &nbsp;'.$title;
 	    if ($nodata) {
 		    $this->Template->js1 = '';  
 	    } else {
 		    $this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
 		}
-		$this->Template->l1 = ' Usage kWh';    // legends for the dataset
+		$this->Template->l1 = ' Usage m3';    // legends for the dataset
 
     }
 
@@ -386,7 +385,7 @@ class ModuleElectricity extends \Module
 
 		// Select appropriate Sensors
 		$this->sensorids = $this->accessSensors();
-		$this->strTemplate = 'mod_elec_sensors';
+		$this->strTemplate = 'mod_gas_sensors';
 		$this->Template = new FrontendTemplate ($this->strTemplate);
 
 		// item is an idsensor...

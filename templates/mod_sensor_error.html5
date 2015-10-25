@@ -5,7 +5,7 @@
 <<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
 <?php endif; ?>
 
-<table cellpadding="4" cellspacing="0" summary="Bifipros">
+<table cellpadding="4" cellspacing="0" summary="Sensors">
 	<tbody>
 	<tr>
 		<td>id:</td>

@@ -1,0 +1,53 @@
+<!-- indexer::stop -->
+<section class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<?php if ($this->headline): ?>
+
+<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+<?php endif; ?>
+
+<!-- <?php $this->ShowTemplateVars(); ?> -->
+
+<table cellpadding="4" cellspacing="0" summary="Sensors">
+	<thead>
+		<tr>
+		<th>Sensor</th>
+		<th>Location</th>
+		<th>Where</th>
+		<th>Monitor</th>
+		<th>Battery</th>
+		<th>Graphs</th>
+		<th>Latest values<th>
+		</tr>
+	</thead>
+	<tbody>
+	<?php foreach ($this->sensors as $sensor): ?>
+	<tr>
+		<td>
+			<?php echo $sensor['detailurl']; ?>
+		</td>	
+		<td>
+			<?php echo $sensor['pid']; ?>
+		</td>	
+		<td>
+			<?php echo $sensor['location']; ?>
+		</td>	
+		<td align=center>
+			<?php echo $sensor['monitorimg']; ?>
+		</td>	
+		<td align=center>
+			<?php echo $sensor['machineimg']; ?>
+		</td>
+		<td align=left>
+            <?php echo '<a href="index.php/Gas/item/'.$sensor['id'].'/graph/daily.html">Graph</a>&nbsp;'; ?>
+		</td>	
+		<td align=right>
+			<?php echo $sensor['currentvalue']; ?>
+		</td>	
+	
+	</tr>
+	<?php endforeach; ?>
+	</tbody>
+</table>
+
+</section>
+<!-- indexer::continue -->

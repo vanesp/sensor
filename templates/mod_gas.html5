@@ -1,0 +1,56 @@
+<?php
+ini_set('display_errors','1');
+?>
+<!-- indexer::stop -->
+<section class="<?php echo $this->class; ?> block"<?php echo $this->cssID; ?><?php if ($this->style): ?> style="<?php echo $this->style; ?>"<?php endif; ?>>
+<?php if ($this->headline): ?>
+
+<<?php echo $this->hl; ?>><?php echo $this->headline; ?></<?php echo $this->hl; ?>>
+<?php endif; ?>
+
+<p>
+			<?php
+                if ($this->date == 0) {
+                  echo '<a href="index.php/Gas/item/'.$this->sensorid.'/graph/daily.html">Daily</a>&nbsp;';
+                  echo '<a href="index.php/Gas/item/'.$this->sensorid.'/graph/monthly.html">Month</a>&nbsp;';
+                } else {
+                    echo '<a href="index.php/Gas/item/'.$this->sensorid.'/date/'.$this->date.'/graph/daily.html">Daily</a>&nbsp;';
+                    echo '<a href="index.php/Gas/item/'.$this->sensorid.'/date/'.$this->date.'/graph/monthly.html">Month</a>&nbsp;';
+                }
+            ?>
+<p>
+<h2>
+	<?php echo $this->title; ?>
+</h2>
+
+<style>
+table {
+	width: 8%;
+}
+</style>
+
+<div id="placeholder" style="width:900px;height:500px"></div>
+<p></p>
+	
+<script type="text/javascript">
+$(function () {
+    var d1 = <?php echo $this->js1; ?>;
+   $.plot($("#placeholder"), [
+        { label: "<?php echo $this->l1; ?>",  data: d1}
+    ], {
+    	xaxes: [ { mode: "time" } ],
+//    	yaxes: [ { min: 0 }
+//    		   ],
+        legend: { position: "nw" },
+        series: {
+            bars: { show: true, align: "center", barWidth: 3200000 }
+           //  points: { show: true }
+        },
+         grid: {
+            backgroundColor: { colors: ["#fff", "#eee"] }
+        }
+    });
+});
+</script>
+</section>
+<!-- indexer::continue -->
