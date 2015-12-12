@@ -57,6 +57,9 @@ class Accumulate extends \Frontend
 	 */
 	public function Statistics()
 	{
+
+	        
+
 		// Roomlog records
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THRoomlog")->execute();
 		$obj = $this->Database->prepare("CREATE TABLE THRoomlog SELECT pid, YEAR(FROM_UNIXTIME(tstamp)) as year, MONTH(FROM_UNIXTIME(tstamp)) as month, DAY(FROM_UNIXTIME(tstamp)) as day, HOUR(FROM_UNIXTIME(tstamp)) as hour,
@@ -122,6 +125,14 @@ class Accumulate extends \Frontend
 		                                    SELECT pid, year, month, day, tstamp, value, hivalue, lowvalue
 											FROM TDSensorlog WHERE tstamp > UNIX_TIMESTAMP()-604800 AND tstamp < UNIX_TIMESTAMP()-3600*24")->execute();
 
+	        // Sometimes we get logs where the P1Log gets values with all zeroes... they screw up the statistics so
+	        // we delete those here
+		$obj = $this->Database->prepare("DELETE FROM P1log
+					          WHERE use1=0")->execute();
+		$obj = $this->Database->prepare("DELETE FROM P1log
+					          WHERE use2=0")->execute();
+		$obj = $this->Database->prepare("DELETE FROM P1log
+					          WHERE gas=0")->execute();
 
 		// Electricity records
 		$obj = $this->Database->prepare("DROP TABLE IF EXISTS THEleclog")->execute();
