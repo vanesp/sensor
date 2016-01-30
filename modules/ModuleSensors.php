@@ -4,7 +4,7 @@
 // Escurio BV
 // http://www.escurio.com/
 //
-// THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY 
+// THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
 // KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
 // PARTICULAR PURPOSE.
@@ -44,8 +44,8 @@ class ModuleSensors extends \Module
 	 */
 	protected $strTemplate = 'mod_sensors';
     protected $bContaoUser = false;
-	
-	
+
+
 	/**
 	 * Display a wildcard in the back end
 	 * @return string
@@ -64,7 +64,7 @@ class ModuleSensors extends \Module
 
 			return $objTemplate->parse();
 		}
-		
+
 		return parent::generate();
 	}
 
@@ -128,14 +128,14 @@ class ModuleSensors extends \Module
 		// check if that e-mail is in the user table
 		$objUser = $this->Database->prepare("SELECT email FROM tl_user WHERE LOWER(email)=?")->limit(1)->execute($objMember->email);
 		if ((strcmp($objUser->email, $objMember->email)==0) || BE_USER_LOGGED_IN) {
-			// we accept all sensors and we have a HWTuser
+			// we accept all sensors and we have a logged in Back end user
             $this->bContaoUser = true;
 			$objSensors = $this->Database->prepare("SELECT id FROM Sensor WHERE pid=? ORDER BY id")->execute($loc);
 		} else {
 			$objSensors = $this->Database->prepare("SELECT DISTINCT Sensor.id AS id FROM Sensor, Location, Customer
             WHERE (LOWER(Customer.email)=? OR LOWER(Location.email)=?)
             AND (Sensor.pid=Customer.id OR Sensor.pid=Location.id)
-            AND Location.pid=Customer.id 
+            AND Location.pid=Customer.id
             AND Sensor.pid=?
             ORDER BY Sensor.id")->execute($objMember->email, $objMember->email, $loc);
 		}
@@ -147,7 +147,7 @@ class ModuleSensors extends \Module
 		return $arrSensors;
 	}
 
-  
+
 	/**
 	 * convert obj to array
 	 * @param obj
@@ -157,7 +157,7 @@ class ModuleSensors extends \Module
 	{
 
 		$this->import('String');
-        
+
 		// go and interpret values to add trafficlight system
 		$last = $objSensors->tstamp;
 		$now = time();					// return unix time
@@ -170,7 +170,7 @@ class ModuleSensors extends \Module
 				$monitoredurl = '<img src="/system/modules/sensor/assets/Orange.png" alt="Monitored within 12 mins" />';
 			}
 		}
-		
+
 		// verify machine status
 		if ($objSensors->lobatt == 1)  {
             // PvE:its a low battery
@@ -178,20 +178,25 @@ class ModuleSensors extends \Module
 		} else {
             $machineurl = '<img src="/system/modules/sensor/assets/Green.png" alt="Battery ok" />';
 		}
-        
+
         // now retrieve the last measured value = current value for each sensor
         if ($objSensors->sensortype == 'RNR') {
         	// roomnode
 			$objs = $this->Database->prepare ("SELECT * FROM Roomlog WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
 			$objs->next();
 			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' L: '.$objs->light. ' % RH: '.$objs->humidity. ' % T: '.$objs->temp. ' &deg;C';
+        } elseif ($objSensors->sensortype == 'P1') {
+	        	// P1 sensor
+				$objs = $this->Database->prepare ("SELECT * FROM P1log WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
+				$objs->next();
+				$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' E: '. ($objs->use1 + $objs->use2)/1000 . ' kW Gas: ' . $objs->gas/1000 . ' m&sup3;';
         } else {
         	// regular sensor
 			$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
 			$objs->next();
 			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' '.$objs->value.' '.$objSensors->sensorquantity;
         }
-        
+
 		$newArray = array
 		(
 			'id' => $objSensors->id,
@@ -218,7 +223,7 @@ class ModuleSensors extends \Module
 			'machineimg' => $machineurl,
 			'currentvalue' => $value,
 		);
-        
+
 		return $newArray;
 	}
 
@@ -245,7 +250,7 @@ class ModuleSensors extends \Module
 	protected function action2arr($obj)
 	{
 		$this->import('String');
-	
+
 		$newArray = array
 		(
 			'id' => $obj->id,
@@ -298,13 +303,13 @@ class ModuleSensors extends \Module
 	 * @param obj
 	 * @return hours
 	 */
-	protected function tzdelta ( $iTime = 0 ) { 
-        if ( 0 == $iTime ) { $iTime = time(); } 
-        $ar = localtime ( $iTime ); 
-        $ar[5] += 1900; $ar[4]++; 
-        $iTztime = gmmktime ( $ar[2], $ar[1], $ar[0], $ar[4], $ar[3], $ar[5]); 
-        return ( $iTztime - $iTime ); 
-	} 
+	protected function tzdelta ( $iTime = 0 ) {
+        if ( 0 == $iTime ) { $iTime = time(); }
+        $ar = localtime ( $iTime );
+        $ar[5] += 1900; $ar[4]++;
+        $iTztime = gmmktime ( $ar[2], $ar[1], $ar[0], $ar[4], $ar[3], $ar[5]);
+        return ( $iTztime - $iTime );
+	}
 
 	/**
 	 * List one Sensor chart
@@ -336,7 +341,7 @@ class ModuleSensors extends \Module
         if (strcmp($arrSensor['sensortype'], 'RNR') == 0) {
         	$bRoom = true;
         }
-        
+
         // Weekly graph ?
         if ((strcmp($graph, 'weekly') == 0)) {
             $bWeekly = true;
@@ -352,11 +357,11 @@ class ModuleSensors extends \Module
             $nrDays = cal_days_in_month (CAL_GREGORIAN, $a["mon"], $a["year"]);
         }
 
-        // Calculate the range of the graph       
+        // Calculate the range of the graph
         if (!isset($timestamp)) {
             $endtime = time();
         	$starttime = $endtime - ($nrDays * 24 * 3600);
-            
+
         } else {
         	$starttime = $timestamp;
         	$endtime = $starttime + ($nrDays * 24 * 3600);
@@ -397,7 +402,7 @@ class ModuleSensors extends \Module
 			// Now retrieve the Motionlog
 			$objs = $this->Database->prepare ("SELECT * FROM Motionlog WHERE pid=? AND tstamp>=? AND tstamp<=? ORDER BY tstamp")->execute($id, $starttime, $endtime);
 			$inmotion = 0;	// state in motion?
-			$currenttime = $starttime; 
+			$currenttime = $starttime;
 			$newA = array
 				(
 					'tstamp' =>  $currenttime,
@@ -449,15 +454,15 @@ class ModuleSensors extends \Module
 			} // while
 		} //if strcmp motion
 
-            
+
 		// Now we create the datasets for the graphs...
 		$count = 0;
-		
+
 		foreach ($arrData as $obj) {
 			$count++;
 			// add  UTC offset to get real time
 			$time = ($obj['tstamp']+$this->tzdelta(0)) * 1000;
-			if ($bRoom) {                
+			if ($bRoom) {
 				// Prepare for javascript...
 				$set1[] = "[" . $time . "," . $obj['temp'] . "]";
 				if (!$bMonthly) {
@@ -470,11 +475,11 @@ class ModuleSensors extends \Module
 			} else {
 				$set1[] = "[" . $time . "," . $obj['value'] . "]";
 			}
-			
+
 		}
-        
-        
-        if ($bRoom) {    
+
+
+        if ($bRoom) {
         	$this->strTemplate = 'mod_stat_detail3';
     	} else {
     		// only one dataset
@@ -489,10 +494,10 @@ class ModuleSensors extends \Module
         // $this->Template->arr = $arrData;
         // $this->Template->starttime = $starttime;
         // $this->Template->endtime = $endtime;
-        
+
         // Start building the title, first get timestamps of yesterday and tomorrow
-        
-        
+
+
         if ($timestamp == 0 or !isset($timestamp)) {
         	$prev = strtotime ("yesterday");
         	if ($bWeekly) $prev = strtotime ("Monday last week");
@@ -516,7 +521,7 @@ class ModuleSensors extends \Module
         	$title .= '&nbsp;<a href="index.php/Sensors/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
             $title .= $arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         }
-        
+
 
        // Create the appropriate graph
        if (strcmp($graph, 'motion') == 0) {
@@ -525,16 +530,16 @@ class ModuleSensors extends \Module
 				$this->Template->l1 = 'Motion detected';    // legends for the dataset
 				$this->Template->min1 = 0;                  // minimum of left hand axis
 				// $this->Template->max1 = 1;                  // maximum of left hand axis
-				
+
 		} else {
             // values graphs
             if ($bRoom) {
 				$this->Template->title = 'Room Node &nbsp;'.$title;
-				
+
 			    if ($nodata) {
-        		    $this->Template->js1 = '';  
-        		    $this->Template->js2 = '';  
-        		    $this->Template->js3 = '';  
+        		    $this->Template->js1 = '';
+        		    $this->Template->js2 = '';
+        		    $this->Template->js3 = '';
 	            } else {
                     $this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
                     $this->Template->js2 = '['.implode(",",$set2).']';                           // dataset 2
@@ -548,13 +553,13 @@ class ModuleSensors extends \Module
 			} else {
 				// single quantity
 				$this->Template->title = 'Sensor &nbsp;'.$title;
-				
+
 			    if ($nodata) {
-        		    $this->Template->js1 = '';  
+        		    $this->Template->js1 = '';
 	            } else {
                     $this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
                 }
-                
+
 				$this->Template->l1 = $arrSensor['location'] . ' ' . $arrSensor['sensorquantity'];    // legends for the dataset
                 if (strcmp($arrSensor['sensortype'], 'Temperature') == 0) {
     				$this->Template->min1 = -10;    // minimum of left hand axis
@@ -578,13 +583,13 @@ class ModuleSensors extends \Module
 	{
 			$arrAction = array();
             $arrLog = array();
-			
+
             $this->strTemplate = 'mod_sensor_detail';
 			$this->Template = new FrontendTemplate ($this->strTemplate);
 
 			// Fetch data from the database
 			$objs = $this->Database->prepare ("SELECT Sensor.*, tl_user.name as name FROM Sensor, tl_user WHERE Sensor.id=? AND tl_user.id = Sensor.uid ")->limit(1)->execute($id);
-	
+
 			// Put sensors into array
 			while ($objs->next())
 			{
@@ -601,20 +606,20 @@ class ModuleSensors extends \Module
 				// Now retrieve the Roomlog, if it is a room sensor, limit to last 32 items
 				$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=? ORDER BY tstamp DESC")->limit(24)->execute($idsensor);
 			}
-		
+
 			// Put logs into array
 			while ($objs->next())
 			{
 					$arrLog[] = $this->log2arr($objs, $qty);
 			}
 			// Assign data to the template
-			$this->Template->statuslog = $arrLog;		
-	
+			$this->Template->statuslog = $arrLog;
+
 			// Assign data to the template
 			$this->Template->sensor = $arrSensor;
 			// Now retrieve the Action records
 			$objs = $this->Database->prepare ("SELECT Actionlog.*, tl_user.name as name FROM Actionlog, tl_user WHERE pid=? AND tl_user.id = Actionlog.uid ORDER BY created DESC")->limit(10)->execute($id);
-	
+
 			// Put statuses into array
 			while ($objs->next())
 			{
@@ -625,7 +630,7 @@ class ModuleSensors extends \Module
 
 	}
 
-	
+
 	/**
 	 * Generate module
 	 */
@@ -649,7 +654,7 @@ class ModuleSensors extends \Module
         if (strlen($location) != 0) {
             $this->sensorids = $this->locationSensors($location);
         }
-        
+
 		// item is either an id, or an idsensor... so check for both
         // $this->log('Sensor '.$item.' strlen '.strlen($item),__METHOD__,'INFO');
 		if (strlen($item) != 0) {
@@ -660,16 +665,16 @@ class ModuleSensors extends \Module
 			if ($prow->numRows == 1) {
 				$item = $prow->id;
 			}
-			
+
 			// check if item in the array of $this->custids, so that we have access
 			if (is_array($this->sensorids) && (in_array($item, $this->sensorids, $strict = null))) {
-				// ok, we are allowed to see that item... check if it is a graph or just a listing 
+				// ok, we are allowed to see that item... check if it is a graph or just a listing
 		        if (strlen($graph) == 0) {
 					$this->listSensor($item);
 				} else {
 					$this->listGraph($item, $date, $graph);
 				}
-				
+
 			} else {
 				// can not see this sensor,
 				$this->strTemplate = 'mod_sensor_error';
@@ -691,25 +696,25 @@ class ModuleSensors extends \Module
 					'idsensor' => '',
 					'detailurl' => 'No valid sensors found',
 				);
-        
+
 				$this->Template->sensors = $arrSensors;
 				return '';
 			}
-			
+
 			// Fetch data from the database
 			$objSensors = $this->Database->execute("SELECT * FROM Sensor WHERE id IN (". implode(',', array_map('intval', $this->sensorids)) . ") ORDER BY idsensor");
-		
+
 			// Put sensors into array
 			while ($objSensors->next())
 			{
 					$arrSensors[] = $this->sensor2arr($objSensors);
 			}
-	
+
 			// Assign data to the template
 			$this->Template->sensors = $arrSensors;
 		} // if-else
 	}
-	
+
 }
 
 ?>
