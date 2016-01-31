@@ -271,28 +271,33 @@ class ModuleSensors extends \Module
 	 */
 	protected function log2arr($obj, $qty)
 	{
-		// $val is a print out value... other values are from the records directly
-		if ($qty != '' && $qty != 'Various') {
-			$value = $obj->value . ' ' . $qty;
-		} else {
-			// it's a room node (put table in there)
-			$value = 'L: '.$obj->light. ' %</td><td>RH: '.$obj->humidity. ' %</td><td>T: '.$obj->temp. ' &deg;C';
-		}
+
 		$newArray = array
 		(
 //			'pid' => $obj->pid,
 //			'ts' => $this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $obj->tstamp),
 			'tstamp' =>  $obj->tstamp,
-//			'val' => $value,
 			'value' => $obj->value,
 			'light' => $obj->light,
 			'humidity' => $obj->humidity,
 			'temp' => $obj->temp,
-//			'year' => $obj->year,
-//			'month' => $obj->month,
-//			'day' => $obj->day,
-//			'hour' => $obj->hour,
+			'el' => $obj->usew,
+			'gen' => $obj->genw,
+			'gas' => $obj->gas,
 		);
+
+		// $val is a print out value... other values are from the records directly
+		if ($qty != '' && $qty != 'Various' && $qty != 'P1') {
+			$newArray['value'] = $obj->value . ' ' . $qty;
+		} else {
+		    if ($qty == 'P1') {
+		        // it's a P1 node
+				$newArray['value'] = 'E: '. $obj->usew . ' W Gen: '. $obj->genw . ' W Gas: ' . $obj->gas/1000 . ' m&sup3;';
+		    } else {
+                // it's a room node
+                $newArray['value'] = 'L: '.$obj->light. ' % RH: '.$obj->humidity. ' % T: '.$obj->temp. ' &deg;C';
+			}
+		}
 		return $newArray;
 	}
 
@@ -600,10 +605,13 @@ class ModuleSensors extends \Module
 			$qty = $objs->sensorquantity;
 
             if ($objs->sensortype == "RNR") {
-				// Now retrieve the Roomlog, if it is a room sensor, limit to last 32 items
+				// Now retrieve the Roomlog, if it is a room sensor, limit to last 24 items
 				$objs = $this->Database->prepare ("SELECT * FROM Roomlog WHERE pid=? ORDER BY tstamp DESC")->limit(24)->execute($idsensor);
+            } elseif ($objs->sensortype == "P1") {
+				// Now retrieve the P1 log
+				$objs = $this->Database->prepare ("SELECT * FROM P1log WHERE pid=? ORDER BY tstamp DESC")->limit(24)->execute($idsensor);
 			} else {
-				// Now retrieve the Roomlog, if it is a room sensor, limit to last 32 items
+				// Now retrieve the Roomlog, if it is a room sensor, limit to last 24 items
 				$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=? ORDER BY tstamp DESC")->limit(24)->execute($idsensor);
 			}
 
