@@ -22,31 +22,31 @@ ini_set('display_errors','1');
 	<tr>
 		<td>
 			<?php echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'.html">'.$this->sensor['id'].'</a>'; ?>
-		</td>	
+		</td>
 		<td>
 			<?php echo $this->sensor['idsensor']; ?>
-		</td>	
+		</td>
 		<td>
 			<?php echo $this->sensor['location']; ?>
-		</td>	
+		</td>
 		<td>
 			<?php echo $this->sensor['sensortype']; ?>
-		</td>	
+		</td>
 		<td>
 			<?php
                 if ($this->year == 0) {
                   echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/values.html">Graph</a>&nbsp;';
                   echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/weekly.html">Week</a>&nbsp;';
                   echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/monthly.html">Month</a>&nbsp;';
-				  if ($this->sensor['sensortype'] == 'RNR') echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/motion.html">Motion</a>&nbsp;'; 
+				  if ($this->sensor['sensortype'] == 'RNR') echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/graph/motion.html">Motion</a>&nbsp;';
                 } else {
                     echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/year/'.$this->year.'/graph/values.html">Graph</a>&nbsp;';
                     echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/year/'.$this->year.'/graph/weekly.html">Week</a>&nbsp;';
                     echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/year/'.$this->year.'/graph/monthly.html">Month</a>&nbsp;';
-				    if ($this->sensor['sensortype'] == 'RNR') echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/year/'.$this->year.'/graph/motion.html">Motion</a>&nbsp;'; 
+				    if ($this->sensor['sensortype'] == 'RNR') echo '<a href="index.php/Sensors/item/'.$this->sensor['id'].'/year/'.$this->year.'/graph/motion.html">Motion</a>&nbsp;';
                 }
             ?>
-		</td>	
+		</td>
 	</tr>
 	</tbody>
 </table>
@@ -64,7 +64,7 @@ table {
 
 <div id="placeholder" style="width:900px;height:500px"></div>
 <p></p>
-	
+
 <script type="text/javascript">
 $(function () {
     var d1 = <?php echo $this->js1; ?>;

@@ -1,6 +1,6 @@
 <?php
 
-// <copyright> Copyright (c) 2012-2013 All Rights Reserved,
+// <copyright> Copyright (c) 2012-2016 All Rights Reserved,
 // Escurio BV
 // http://www.escurio.com/
 //
@@ -21,6 +21,7 @@
 // Version 1.3, 2013-07-31 - add weekly / monthly graphs
 // Version 1.4, 2013-08-03 - zero base all scales except for outdoor temperature
 // Version 1.5, 2013-12-06 - changes for Contao 3.1.2
+// Version 1.6, 2016-01-31 - changes for P1 metering graphs
 
 
 /**
@@ -186,10 +187,10 @@ class ModuleSensors extends \Module
 			$objs->next();
 			$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' L: '.$objs->light. ' % RH: '.$objs->humidity. ' % T: '.$objs->temp. ' &deg;C';
         } elseif ($objSensors->sensortype == 'P1') {
-	        	// P1 sensor
-				$objs = $this->Database->prepare ("SELECT * FROM P1log WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
-				$objs->next();
-				$value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' E: '. ($objs->use1 + $objs->use2)/1000 . ' kW Gas: ' . $objs->gas/1000 . ' m&sup3;';
+            // P1 sensor
+            $objs = $this->Database->prepare ("SELECT * FROM P1log WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
+            $objs->next();
+            $value = '@ '.$this->parseDate($GLOBALS['TL_CONFIG']['datimFormat'], $objs->tstamp) .' E: '. ($objs->use1 + $objs->use2)/1000 . ' kW Gas: ' . $objs->gas/1000 . ' m&sup3;';
         } else {
         	// regular sensor
 			$objs = $this->Database->prepare ("SELECT * FROM Sensorlog WHERE pid=? ORDER BY tstamp DESC")->limit(1)->execute($objSensors->id);
@@ -289,14 +290,12 @@ class ModuleSensors extends \Module
 		// $val is a print out value... other values are from the records directly
 		if ($qty != '' && $qty != 'Various' && $qty != 'P1') {
 			$newArray['value'] = $obj->value . ' ' . $qty;
-		} else {
-		    if ($qty == 'P1') {
-		        // it's a P1 node
-				$newArray['value'] = 'E: '. $obj->usew . ' W Gen: '. $obj->genw . ' W Gas: ' . $obj->gas/1000 . ' m&sup3;';
-		    } else {
-                // it's a room node
-                $newArray['value'] = 'L: '.$obj->light. ' % RH: '.$obj->humidity. ' % T: '.$obj->temp. ' &deg;C';
-			}
+		} elseif ($qty == 'P1') {
+            // it's a P1 node
+            $newArray['value'] = 'E: '. $obj->usew . ' W Gen: '. $obj->genw . ' W Gas: ' . $obj->gas/1000 . ' m&sup3;';
+		} elseif ($qty == 'Various') {
+            // it's a room node
+            $newArray['value'] = 'L: '.$obj->light. ' % RH: '.$obj->humidity. ' % T: '.$obj->temp. ' &deg;C';
 		}
 		return $newArray;
 	}
@@ -329,10 +328,13 @@ class ModuleSensors extends \Module
 	{
         $arrData = array();
         $bRoom = false;
+        $bP1 = false;
         $bWeekly = false;
         $bMonthly = false;
         $nrDays = 1;
         $nodata = false;
+        $gasdelta = 0;
+        $gasbase = 0;
 
         // Fetch Sensor data from the database
         $sensObjs = $this->Database->prepare ("SELECT * FROM Sensor WHERE id=?")->limit(1)->execute($id);
@@ -346,6 +348,10 @@ class ModuleSensors extends \Module
         if (strcmp($arrSensor['sensortype'], 'RNR') == 0) {
         	$bRoom = true;
         }
+        if (strcmp($arrSensor['sensortype'], 'P1') == 0) {
+        	$bP1 = true;
+        }
+
 
         // Weekly graph ?
         if ((strcmp($graph, 'weekly') == 0)) {
@@ -381,6 +387,13 @@ class ModuleSensors extends \Module
     			} else {
     				$objs = $this->Database->prepare ("SELECT * FROM Roomlog WHERE pid=? AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
     			}
+            } elseif ($bP1) {
+				// Now retrieve the P1 data
+				if ($bWeekly || $bMonthly) {
+    				$objs = $this->Database->prepare ("SELECT tstamp,usew,genw,gas FROM HourlyP1log WHERE tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+    			} else {
+    				$objs = $this->Database->prepare ("SELECT tstamp,usew,genw,gas FROM P1log WHERE pid=? AND tstamp>=? AND tstamp<=? ORDER BY tstamp DESC")->execute($id, $starttime, $endtime);
+    			}
 			} else {
 				// Retrieve the Sensorlog
 				if ($bWeekly || $bMonthly) {
@@ -390,11 +403,22 @@ class ModuleSensors extends \Module
     			}
 			}
 			// check if we have data at all
+			// if it is a P1 node, keep track of gas changes
 			if ($objs->count() > 0) {
                 if ($objs->last()) {
+                    if ($bP1 && !($bWeekly || $bMonthly)) {
+                        $gasbase = $objs->gas;
+                        $gasdelta = 0;
+                        $objs->gas = 0;
+                    }
                     $arrData[] = $this->log2arr($objs,'');
                     while ($objs->prev()) {
-                            $arrData[] = $this->log2arr($objs,'');
+                        if ($bP1 && !($bWeekly || $bMonthly)) {
+                            $gasdelta = $gasbase - $objs->gas;
+                            $gasbase = $objs->gas;
+                            $objs->gas = $gasdelta;
+                        }
+                        $arrData[] = $this->log2arr($objs,'');
                     }
                 }
     		} else {
@@ -477,14 +501,18 @@ class ModuleSensors extends \Module
 				    $set2[] = null;
 				}
 				$set3[] = "[" . $time . "," . $obj['humidity']."]";
+			} elseif ($bP1) {
+				// Prepare for javascript...
+				$set1[] = "[" . $time . "," . $obj['el'] . "]";
+			    $set2[] = "[" . $time . "," . $obj['gen'] . "]";
+				$set3[] = "[" . $time . "," . $obj['gas']."]";
 			} else {
 				$set1[] = "[" . $time . "," . $obj['value'] . "]";
 			}
-
 		}
 
 
-        if ($bRoom) {
+        if ($bRoom || $bP1) {
         	$this->strTemplate = 'mod_stat_detail3';
     	} else {
     		// only one dataset
@@ -493,7 +521,7 @@ class ModuleSensors extends \Module
         $this->Template = new FrontendTemplate ($this->strTemplate);
         // Assign data to the template
         $this->Template->sensor = $arrSensor;
-        $this->Template->bRoom = $bRoom;
+        $this->Template->bRoom = ($bRoom || $bP1);
         $this->Template->date = $timestamp;
         // Debug
         // $this->Template->arr = $arrData;
@@ -501,7 +529,6 @@ class ModuleSensors extends \Module
         // $this->Template->endtime = $endtime;
 
         // Start building the title, first get timestamps of yesterday and tomorrow
-
 
         if ($timestamp == 0 or !isset($timestamp)) {
         	$prev = strtotime ("yesterday");
@@ -526,7 +553,6 @@ class ModuleSensors extends \Module
         	$title .= '&nbsp;<a href="index.php/Sensors/item/'.$id.'/date/'.$next.'/graph/'.$graph.'.html">></a>&nbsp;';
             $title .= $arrSensor['idsensor'].'&nbsp;'.$arrSensor['location'];
         }
-
 
        // Create the appropriate graph
        if (strcmp($graph, 'motion') == 0) {
@@ -553,6 +579,23 @@ class ModuleSensors extends \Module
 				$this->Template->l1 = "&deg;C";                           // legend 1
 				$this->Template->l2 = "light";                           // legend 2
 				$this->Template->l3 = "% RH";                           // legend 3
+    			$this->Template->min1 = 0;
+				// $this->Template->max1 = 40;                  // maximum of left hand axis
+			} elseif ($bP1) {
+				$this->Template->title = 'P1 Node &nbsp;'.$title;
+
+			    if ($nodata) {
+        		    $this->Template->js1 = '';
+        		    $this->Template->js2 = '';
+        		    $this->Template->js3 = '';
+	            } else {
+                    $this->Template->js1 = '['.implode(",",$set1).']';                           // dataset 1
+                    $this->Template->js2 = '['.implode(",",$set2).']';                           // dataset 2
+                    $this->Template->js3 = '['.implode(",",$set3).']';                           // dataset 3
+                }
+				$this->Template->l1 = "W cons";                           // legend 1
+				$this->Template->l2 = "W gen";                           // legend 2
+				$this->Template->l3 = "l";                           // legend 3
     			$this->Template->min1 = 0;
 				// $this->Template->max1 = 40;                  // maximum of left hand axis
 			} else {
